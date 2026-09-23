@@ -21,9 +21,6 @@ onMounted(async () => {
           <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
             {{ uiStore.language === 'ar' ? 'إدارة المخزون ونقاط إعادة الطلب' : 'Inventory & Par Levels' }}
           </h1>
-          <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-            Inventory Service Connected
-          </span>
         </div>
         <p class="text-sm text-slate-500 mt-1">
           {{ uiStore.language === 'ar' ? 'تتبع المواد الخام، التنبيهات الحرجة، ومستوى الأمان للمنتجات' : 'Track raw kitchen ingredients, par levels, stockouts, and suppliers' }}

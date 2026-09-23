@@ -26,9 +26,6 @@ onMounted(async () => {
           <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
             {{ uiStore.language === 'ar' ? 'سجل الحضور والانصراف الذكي' : 'Smart Biometric & Geofence Attendance' }}
           </h1>
-          <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-cyan-100 text-cyan-800 border border-cyan-200">
-            Attendance Service Connected
-          </span>
         </div>
         <p class="text-sm text-slate-500 mt-1">
           {{ uiStore.language === 'ar' ? 'متابعة البصمة، النطاق الجغرافي، وساعات العمل الإضافية' : 'Monitor biometric clock-ins, geofence validations, and overtime shifts' }}

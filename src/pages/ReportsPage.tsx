@@ -47,7 +47,7 @@ export const ReportsPage: React.FC = () => {
   return (
     <PageContainer
       title={t.reports.title}
-      subtitle={`${selectedRestaurant.name[language]} — ${t.reports.subtitle}`}
+      subtitle={`${selectedRestaurant.name[language]} - ${t.reports.subtitle}`}
       actions={
         <div className="flex items-center gap-2">
           <Select

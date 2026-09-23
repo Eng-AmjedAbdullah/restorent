@@ -21,9 +21,6 @@ onMounted(async () => {
           <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
             {{ uiStore.language === 'ar' ? 'شاشة المطبخ والطلبات الحية' : 'Live Kitchen Display & Orders' }}
           </h1>
-          <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-orange-100 text-orange-800 border border-orange-200">
-            Order Service Connected
-          </span>
         </div>
         <p class="text-sm text-slate-500 mt-1">
           {{ uiStore.language === 'ar' ? 'متابعة تدفق الطلبات، زمن التحضير، وتذاكر الطهاة في الخط الساخن' : 'Real-time kitchen order tickets (KOT), cook preparation times, and statuses' }}

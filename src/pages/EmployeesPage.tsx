@@ -149,7 +149,7 @@ export const EmployeesPage: React.FC = () => {
       header: t.employees.columns.position,
       render: emp => (
         <div>
-          <span className="font-medium text-slate-800 block text-xs">{emp.position?.title[language] || '—'}</span>
+          <span className="font-medium text-slate-800 block text-xs">{emp.position?.title[language] || '-'}</span>
           <span className="text-[11px] text-slate-400 capitalize">{emp.position ? (t.employees[emp.position.department] || emp.position.department) : ''}</span>
         </div>
       ),
@@ -339,7 +339,7 @@ export const EmployeesPage: React.FC = () => {
                     {emp.first_name[language]} {emp.last_name[language]}
                   </h4>
                   <p className="text-xs text-slate-500 font-medium">
-                    {emp.position?.title[language] || '—'}
+                    {emp.position?.title[language] || '-'}
                   </p>
                 </div>
               </div>
@@ -528,7 +528,7 @@ export const EmployeesPage: React.FC = () => {
                     {language === 'ar' ? 'جهة الاتصال في حالات الطوارئ:' : 'Emergency Contact:'}
                   </span>
                   <p className="text-amber-800">
-                    {selectedEmployee.emergency_contact.name} ({selectedEmployee.emergency_contact.relationship}) — {selectedEmployee.emergency_contact.phone}
+                    {selectedEmployee.emergency_contact.name} ({selectedEmployee.emergency_contact.relationship}) - {selectedEmployee.emergency_contact.phone}
                   </p>
                 </div>
               </div>
@@ -587,7 +587,7 @@ export const EmployeesPage: React.FC = () => {
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-slate-600">
                           <div>{language === 'ar' ? 'المجدول:' : 'Scheduled:'} {att.scheduled_start} - {att.scheduled_end}</div>
-                          <div>{language === 'ar' ? 'البصمة الفعلية:' : 'Clock-In:'} {att.actual_clock_in || '—'}</div>
+                          <div>{language === 'ar' ? 'البصمة الفعلية:' : 'Clock-In:'} {att.actual_clock_in || '-'}</div>
                         </div>
                       </div>
                     ))

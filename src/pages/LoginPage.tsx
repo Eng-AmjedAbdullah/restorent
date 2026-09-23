@@ -153,11 +153,11 @@ export const LoginPage: React.FC = () => {
                 </Button>
               </form>
 
-              {/* Quick Persona Switcher for Presentation Prototype */}
+              {/* Quick Persona Access */}
               <div className="mt-6 pt-5 border-t border-[#182F48]">
                 <p className="text-[11px] font-semibold text-slate-400 mb-2.5 flex items-center gap-1.5">
                   <UserCheck className="w-3.5 h-3.5 text-[#4edee3]" />
-                  <span>{language === 'ar' ? 'أدوار تجريبية سريعة للعرض والتقييم:' : 'Quick Demo Personas for Review:'}</span>
+                  <span>{language === 'ar' ? 'تسجيل دخول سريع حسب المنصب:' : 'Direct Role Access:'}</span>
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -189,7 +189,7 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <div className="pt-6 text-center text-xs text-slate-400">
-              {language === 'ar' ? 'بيئة عرض تجريبية تفاعلية لمنظومة RestoraIntel' : 'Interactive Prototype Review Environment for RestoraIntel'}
+              {language === 'ar' ? 'نظام RestoraIntel السحابي لإدارة وتشغيل سلاسل المطاعم' : 'RestoraIntel Cloud Restaurant Operations & Intelligence'}
             </div>
           </div>
 

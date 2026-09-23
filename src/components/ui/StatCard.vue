@@ -38,8 +38,8 @@ withDefaults(defineProps<Props>(), {
           trendUp ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
         ]"
       >
-        <span v-if="trendUp">â†‘</span>
-        <span v-else>â†“</span>
+        <span v-if="trendUp">↑</span>
+        <span v-else>↓</span>
         {{ trend }}
       </span>
     </div>
@@ -47,5 +47,10 @@ withDefaults(defineProps<Props>(), {
     <p v-if="subtitle" class="mt-1 text-xs text-slate-500">
       {{ subtitle }}
     </p>
+
+    <div v-if="$slots.footer || $slots.default" class="mt-2">
+      <slot name="footer" />
+      <slot />
+    </div>
   </div>
 </template>

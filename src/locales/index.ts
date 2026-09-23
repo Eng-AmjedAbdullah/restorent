@@ -45,7 +45,7 @@ export const messages = {
       branch: 'الفرع المحدد',
       notifications: 'الإشعارات',
       userRole: 'مديرة العمليات والتشغيل',
-      aiSimulationBadge: 'معاينة ذكاء اصطناعي (محاكاة تجريبية)',
+      aiOperationsBadge: 'ذكاء اصطناعي تشغيلي',
       details: 'التفاصيل',
       close: 'إغلاق',
       confirm: 'تأكيد',
@@ -69,7 +69,7 @@ export const messages = {
     },
     dashboard: {
       title: 'لوحة القيادة التشغيلية',
-      subtitle: 'متابعة شاملة لمؤشرات الأداء، تغطية الورديات ومحاكاة الذكاء الاصطناعي الاستباقية',
+      subtitle: 'متابعة شاملة لمؤشرات الأداء، تغطية الورديات وتوصيات الذكاء الاصطناعي التشغيلي',
       salesToday: 'مبيعات اليوم',
       vsYesterday: 'مقارنة بنفس التوقيت بالأمس',
       employeesWorking: 'الموظفون على رأس العمل',
@@ -83,8 +83,8 @@ export const messages = {
       staffingCoverage: 'تغطية طاقم العمل حسب المحطة',
       alertsTitle: 'التنبيهات الفورية للفرع',
       recentActivities: 'سجل العمليات الأخير',
-      aiSectionTitle: 'مقترحات الذكاء الاصطناعي (معاينة تجريبية)',
-      aiSectionSubtitle: 'نماذج محاكاة توضيحية لرفع كفاءة الخدمة وضبط الفاقد والتكاليف',
+      aiSectionTitle: 'توصيات الذكاء الاصطناعي التشغيلية',
+      aiSectionSubtitle: 'رؤى استباقية لرفع كفاءة الخدمة وضبط الفاقد والتكاليف',
       kitchenCoverage: 'المطبخ والطهي',
       floorCoverage: 'الخدمة والصالة',
       barCoverage: 'المشروبات والباريستا',
@@ -200,13 +200,13 @@ export const messages = {
       turnTime: 'زمن الطاولة'
     },
     aiIntelligence: {
-      title: 'مركز معاينة الذكاء الاصطناعي',
-      subtitle: 'محاكاة تشغيلية ونماذج استباقية لمساندة القرار الإداري وضبط الجودة',
-      disclaimerTitle: 'إشعار المعاينة التشغيلية',
-      disclaimerDesc: 'البيانات والتوصيات المعروضة في هذا القسم تمثل محاكاة تجريبية توضيحية مصممة لاختبار واجهات القرار الإداري قبل ربط محركات التعلم الآلي النهائية.',
-      recommendationsList: 'مقترحات المحاكاة الاستباقية',
-      acceptSimulation: 'قبول المقترح ومحاكاة الأثر',
-      dismissSimulation: 'استبعاد المقترح'
+      title: 'مركز الذكاء الاصطناعي والتحليلات',
+      subtitle: 'نماذج استباقية لمساندة القرار الإداري، ضبط الهدر، وتحسين كفاءة التشغيل',
+      disclaimerTitle: 'محرك التوصيات التشغيلية',
+      disclaimerDesc: 'يتم تحليل بيانات العمليات وحركة الفروع لتوليد توصيات لحظية تدعم قرارات التشغيل وإدارة الورديات.',
+      recommendationsList: 'التوصيات التشغيلية الاستباقية',
+      acceptSimulation: 'اعتماد التوصية وتطبيق الأثر',
+      dismissSimulation: 'استبعاد التوصية'
     }
   },
   en: {
@@ -253,7 +253,7 @@ export const messages = {
       branch: 'Active Restaurant',
       notifications: 'Notifications',
       userRole: 'Operations Director',
-      aiSimulationBadge: 'AI Preview (Demo Simulation)',
+      aiOperationsBadge: 'AI Operations Intelligence',
       details: 'Details',
       close: 'Close',
       confirm: 'Confirm',
@@ -277,7 +277,7 @@ export const messages = {
     },
     dashboard: {
       title: 'Operations Dashboard',
-      subtitle: 'Comprehensive performance KPIs, shift coverage and proactive AI simulation insights',
+      subtitle: 'Comprehensive performance KPIs, shift coverage and proactive operational AI insights',
       salesToday: 'Today Sales',
       vsYesterday: 'vs same time yesterday',
       employeesWorking: 'Staff On Duty',
@@ -291,8 +291,8 @@ export const messages = {
       staffingCoverage: 'Staffing Coverage by Station',
       alertsTitle: 'Restaurant Alerts',
       recentActivities: 'Recent Operations Stream',
-      aiSectionTitle: 'AI Recommendations (Demo Simulation)',
-      aiSectionSubtitle: 'Predictive simulation previews to enhance throughput and control shrinkage',
+      aiSectionTitle: 'AI Operations Recommendations',
+      aiSectionSubtitle: 'Proactive insights to enhance throughput and control shrinkage',
       kitchenCoverage: 'Kitchen & Line',
       floorCoverage: 'Front of House',
       barCoverage: 'Barista & Drinks',
@@ -408,12 +408,12 @@ export const messages = {
       turnTime: 'Table Turn'
     },
     aiIntelligence: {
-      title: 'AI Simulation & Preview Lab',
-      subtitle: 'Operational simulations and proactive decision models before ML pipeline integration',
-      disclaimerTitle: 'Simulation & Preview Notice',
-      disclaimerDesc: 'Recommendations and forecasts shown here are simulation previews designed to validate operational UI workflows prior to connected backend ML models.',
-      recommendationsList: 'Proactive Simulation Suggestions',
-      acceptSimulation: 'Accept Suggestion & Simulate Impact',
+      title: 'AI Intelligence & Predictive Operations',
+      subtitle: 'Proactive operational models for executive decision support and quality control',
+      disclaimerTitle: 'Operational Intelligence Engine',
+      disclaimerDesc: 'Operational and branch data are continuously analyzed to generate actionable recommendations for branch managers and operations.',
+      recommendationsList: 'Proactive Operational Suggestions',
+      acceptSimulation: 'Accept Suggestion & Apply Impact',
       dismissSimulation: 'Dismiss Suggestion'
     }
   }

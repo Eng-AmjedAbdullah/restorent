@@ -21,9 +21,6 @@ onMounted(async () => {
           <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
             {{ uiStore.language === 'ar' ? 'جدولة الورديات والمناوبات' : 'Shift Scheduling & Coverage' }}
           </h1>
-          <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">
-            Scheduling Service Ready
-          </span>
         </div>
         <p class="text-sm text-slate-500 mt-1">
           {{ uiStore.language === 'ar' ? 'تخطيط جدول الطهاة وطاقم الصالة وتغطية أوقات الذروة' : 'Shift planning, kitchen stations coverage, and peak hour dispatching' }}

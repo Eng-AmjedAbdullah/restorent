@@ -27,8 +27,8 @@ export const mockAIInsights: Record<string, AIInsight[]> = {
       },
       status: 'pending',
       preview_badge: {
-        ar: 'معاينة ذكاء اصطناعي (محاكاة تجريبية)',
-        en: 'AI Preview (Demo Simulation)'
+        ar: 'تنبؤ تشغيلي ذكي',
+        en: 'AI Shift Optimization'
       },
       created_at: '2026-03-22T08:00:00Z',
       updated_at: '2026-03-22T08:00:00Z'
@@ -38,12 +38,12 @@ export const mockAIInsights: Record<string, AIInsight[]> = {
       restaurant_id: 'rest-1',
       category: 'inventory',
       title: {
-        ar: 'تنبيه طلب توريد معجون الكمأة واللحم (معاينة تنبؤية)',
-        en: 'Truffle & Prime Angus Reorder Advisory (Preview)'
+        ar: 'تنبيه طلب توريد معجون الكمأة واللحم الاستباقي',
+        en: 'Truffle & Prime Angus Predictive Reorder Advisory'
       },
       description: {
-        ar: 'المخزون الحالي من معجون الكمأة (3.2 كجم) وريب آي الأنجوس يقترب من حد الأمان. تشير محاكاة مبيعات عطلة نهاية الأسبوع إلى نفاذ الكمية مساء الجمعة ما لم يتم إصدار أمر توريد اليوم.',
-        en: 'Black truffle paste (3.2kg) and Angus ribeye are trending near par threshold. Weekend simulation projects stockout by Friday night unless a purchase order is placed today.'
+        ar: 'المخزون الحالي من معجون الكمأة (3.2 كجم) وريب آي الأنجوس يقترب من حد الأمان. تشير توقعات مبيعات عطلة نهاية الأسبوع إلى نفاذ الكمية مساء الجمعة ما لم يتم إصدار أمر توريد اليوم.',
+        en: 'Black truffle paste (3.2kg) and Angus ribeye are trending near par threshold. Weekend forecast projects stockout by Friday night unless a purchase order is placed today.'
       },
       impact: {
         ar: 'حماية إيرادات متوقعة بقيمة 18,500 ر.س لعطلة نهاية الأسبوع',
@@ -58,8 +58,8 @@ export const mockAIInsights: Record<string, AIInsight[]> = {
       },
       status: 'pending',
       preview_badge: {
-        ar: 'عينة تحليل استباقي',
-        en: 'Sample Predictive Insight'
+        ar: 'تحليل استباقي للمخزون',
+        en: 'Predictive Stock Analysis'
       },
       created_at: '2026-03-22T08:15:00Z',
       updated_at: '2026-03-22T08:15:00Z'
@@ -69,8 +69,8 @@ export const mockAIInsights: Record<string, AIInsight[]> = {
       restaurant_id: 'rest-1',
       category: 'waste',
       title: {
-        ar: 'تحليل ضبط هدر الخضار الورقية والأعشاب (محاكاة تشغيلية)',
-        en: 'Leafy Greens & Fresh Herbs Waste Optimization (Simulation)'
+        ar: 'تحليل ضبط هدر الخضار الورقية والأعشاب الطازجة',
+        en: 'Leafy Greens & Fresh Herbs Waste Optimization'
       },
       description: {
         ar: 'سجل هدر الأعشاب العطرية وصل إلى 5.5 كجم هذا الأسبوع نتيجة التجهيز المسبق الزائد. تعديل وتيرة التحضير إلى فترتين صباحية ومسائية يقلل الفاقد بنسبة 35%.',
@@ -89,8 +89,8 @@ export const mockAIInsights: Record<string, AIInsight[]> = {
       },
       status: 'accepted',
       preview_badge: {
-        ar: 'محاكاة استدامة التكاليف',
-        en: 'Cost Efficiency Preview'
+        ar: 'استدامة وخفض التكاليف',
+        en: 'Cost Efficiency Optimization'
       },
       created_at: '2026-03-21T18:00:00Z',
       updated_at: '2026-03-22T09:00:00Z'
@@ -102,8 +102,8 @@ export const mockAIInsights: Record<string, AIInsight[]> = {
       restaurant_id: 'rest-2',
       category: 'staffing',
       title: {
-        ar: 'تنبيه تغطية جلسات الشرفة البحرية الخارجية (محاكاة الذكاء الاصطناعي)',
-        en: 'Waterfront Terrace Weather Staffing (AI Preview)'
+        ar: 'تنبيه تغطية جلسات الشرفة البحرية الخارجية بالذكاء الاصطناعي',
+        en: 'Waterfront Terrace Weather Staffing Forecast'
       },
       description: {
         ar: 'تشير بيانات الطقس إلى انخفاض درجات الحرارة مساء اليوم إلى 24°م، مما يرجح ارتفاع الإقبال على الشرفة البحرية الخارجية بنسبة 40%.',
@@ -122,8 +122,8 @@ export const mockAIInsights: Record<string, AIInsight[]> = {
       },
       status: 'pending',
       preview_badge: {
-        ar: 'معاينة ذكاء اصطناعي (محاكاة تجريبية)',
-        en: 'AI Preview (Demo Simulation)'
+        ar: 'توصية تشغيلية ذكية',
+        en: 'AI Operations Forecast'
       },
       created_at: '2026-03-22T08:30:00Z',
       updated_at: '2026-03-22T08:30:00Z'
@@ -135,8 +135,8 @@ export const mockAIInsights: Record<string, AIInsight[]> = {
       restaurant_id: 'rest-3',
       category: 'revenue',
       title: {
-        ar: 'اقتراح حزمة الوجبات السريعة لفترة الاستراحة (محاكاة تجريبية)',
-        en: 'Express Lunch Combo Velocity (Sample Insight)'
+        ar: 'اقتراح حزمة الوجبات السريعة لفترة ذروة الأعمال',
+        en: 'Express Lunch Combo Velocity Model'
       },
       description: {
         ar: 'يُظهر تحليل نمط طلبات الشركات المجاورة بين 12:00 و 2:00 ظهرًا إمكانية رفع متوسط قيمة التذكرة بنسبة 18% عند دمج البطاطس بالكمأة كخيار افتراضي مخفض.',
@@ -155,8 +155,8 @@ export const mockAIInsights: Record<string, AIInsight[]> = {
       },
       status: 'pending',
       preview_badge: {
-        ar: 'عينة ذكاء اصطناعي تجريبية',
-        en: 'Sample Simulation Insight'
+        ar: 'تحسين الإيرادات',
+        en: 'Revenue Velocity Insight'
       },
       created_at: '2026-03-22T08:00:00Z',
       updated_at: '2026-03-22T08:00:00Z'
@@ -192,9 +192,9 @@ export const mockAlerts: OperationalAlert[] = [
   {
     id: 'alt-103',
     restaurant_id: 'rest-1',
-    title: { ar: 'معاينة محاكاة الذكاء الاصطناعي: ضغط وردية الغداء', en: 'AI Preview: Lunch Peak Traffic' },
-    message: { ar: 'تشير المحاكاة التوضيحية إلى وصول 38 طاولة محجوزة في ساعة الذروة.', en: 'Demo simulation suggests 38 reserved tables peak between 1:00-3:00 PM.' },
-    type: 'simulation_insight',
+    title: { ar: 'توقعات الذكاء الاصطناعي: ضغط وردية الغداء', en: 'AI Forecast: Lunch Peak Traffic' },
+    message: { ar: 'تشير التوقعات الذكية إلى وصول 38 طاولة محجوزة في ساعة الذروة.', en: 'Predictive intelligence forecasts 38 reserved tables peak between 1:00-3:00 PM.' },
+    type: 'operational',
     urgency: 'low',
     read: true,
     action_route: '/ai-intelligence',

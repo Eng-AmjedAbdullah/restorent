@@ -1010,7 +1010,7 @@ export const BrandingPreviewPage: React.FC = () => {
             <p className="text-xs text-slate-500 mt-3 text-center">
               {language === 'ar'
                 ? 'في الوضع الفاتح، لا يوجد أي مستطيل داكن ضخم يغطي الشريط، بل شارة أنيقة مع نص كحلي شفاف.'
-                : 'In light theme, no oversized dark rectangle dominates the bar — discrete jewel badge + transparent slate typography.'}
+                : 'In light theme, no oversized dark rectangle dominates the bar - discrete jewel badge + transparent slate typography.'}
             </p>
           </CardContent>
         </Card>

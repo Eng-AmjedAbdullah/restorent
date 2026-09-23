@@ -21,9 +21,6 @@ onMounted(async () => {
           <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
             {{ uiStore.language === 'ar' ? 'هندسة قائمة الطعام والأصناف' : 'Menu Engineering & Pricing' }}
           </h1>
-          <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-teal-100 text-teal-800 border border-teal-200">
-            Menu Service Connected
-          </span>
         </div>
         <p class="text-sm text-slate-500 mt-1">
           {{ uiStore.language === 'ar' ? 'الأصناف، تكلفة الوجبات، وتصنيف الأطباق الأكثر ربحية' : 'Manage recipe items, menu cost cards, and profitability analytics' }}

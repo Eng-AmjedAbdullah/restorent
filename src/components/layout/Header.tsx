@@ -413,7 +413,7 @@ export const Header: React.FC = () => {
                   className="w-full text-start px-4 py-2.5 text-xs text-slate-300 hover:bg-[#0C1A2B] hover:text-white flex items-center gap-2.5 cursor-pointer border-t border-[#122030]"
                 >
                   <User className="w-4 h-4 text-slate-400" />
-                  <span>{t.nav.login} / {language === 'ar' ? 'تبديل الحساب التجريبي' : 'Switch Persona'}</span>
+                  <span>{t.nav.login} / {language === 'ar' ? 'تبديل الحساب' : 'Switch Role'}</span>
                 </button>
               </div>
             </div>

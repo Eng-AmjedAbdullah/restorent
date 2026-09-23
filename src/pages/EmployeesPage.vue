@@ -20,9 +20,6 @@ onMounted(async () => {
           <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
             {{ uiStore.language === 'ar' ? 'إدارة الموظفين والكوادر' : 'Employee & Staff Management' }}
           </h1>
-          <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 border border-blue-200">
-            Pinia Employee Store Ready
-          </span>
         </div>
         <p class="text-sm text-slate-500 mt-1">
           {{ uiStore.language === 'ar' ? 'سجل العاملين، العقود، الورديات، والمهارات في شبكة الفروع' : 'Directory of staff, employment contracts, shifts, and culinary certifications' }}

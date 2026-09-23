@@ -59,7 +59,7 @@ export const DashboardPage: React.FC = () => {
   return (
     <PageContainer
       title={t.dashboard.title}
-      subtitle={`${selectedRestaurant.name[language]} — ${t.dashboard.subtitle}`}
+      subtitle={`${selectedRestaurant.name[language]} - ${t.dashboard.subtitle}`}
       badge={
         <Badge variant="cyan" size="sm" dot>
           {language === 'ar' ? 'مراقبة فورية RestoraAI' : 'RestoraAI Real-Time'}

@@ -209,7 +209,7 @@ export const AttendancePage: React.FC = () => {
                       </td>
 
                       <td className="py-3.5 px-4 font-mono font-bold text-slate-900">
-                        {record.actual_clock_in || '—'}
+                        {record.actual_clock_in || '-'}
                       </td>
 
                       <td className="py-3.5 px-4">

@@ -44,6 +44,7 @@ export const translations = {
       branch: 'الفرع الحالي',
       notifications: 'الإشعارات',
       userRole: 'مديرة العمليات والتشغيل',
+      logout: 'تسجيل الخروج',
       poweredByAI: 'مدعوم بالذكاء الاصطناعي',
       details: 'التفاصيل',
       close: 'إغلاق',
@@ -249,7 +250,7 @@ export const translations = {
     },
     ai: {
       title: 'الذكاء الاصطناعي التشغيلي RestoraAI',
-      subtitle: 'محرك التحليلات التنبؤية، محاكاة السيناريوهات، واقتراحات خفض التكاليف وتعظيم الإيرادات',
+      subtitle: 'محرك التحليلات التنبؤية، تخطيط السيناريوهات، واقتراحات خفض التكاليف وتعظيم الإيرادات',
       predictions: 'التنبؤات المستقبلية',
       recommendations: 'التوصيات النشطة',
       explainability: 'شفافية وتحليل القرار (Explainable AI)',
@@ -269,13 +270,13 @@ export const translations = {
       rememberMe: 'تذكر هذا الجهاز',
       forgotPassword: 'نسيت كلمة المرور؟',
       signInBtn: 'تسجيل الدخول إلى النظام',
-      demoLoginNotice: 'هذا نموذج تفاعلي متقدم. اضغط على تسجيل الدخول للاستكشاف مباشرة.',
+      demoLoginNotice: 'منصة إدارة سلاسل المطاعم المتقدمة. أدخل بياناتك أو تابع مباشرة للوحة التحكم.',
       features: [
         'جدولة آلية تقلل من تكلفة العمالة بنسبة تصل إلى 14%',
         'تنبؤ ذكي بنفاد المخزون يمنع انقطاع الأصناف بنسبة 98%',
         'مراقبة لحظية لكفاءة المطبخ وحركة الطلبات داخل الصالة',
       ],
-      quickAccess: 'دخول سريع بحساب تجريبي',
+      quickAccess: 'الدخول المباشر لحساب الإدارة',
       viewDashboard: 'الانتقال للوحة التحكم',
     }
   },
@@ -324,6 +325,7 @@ export const translations = {
       branch: 'Active Branch',
       notifications: 'Notifications',
       userRole: 'Operations Director',
+      logout: 'Logout',
       poweredByAI: 'Powered by RestoraAI',
       details: 'Details',
       close: 'Close',
@@ -549,13 +551,13 @@ export const translations = {
       rememberMe: 'Remember this terminal',
       forgotPassword: 'Forgot password?',
       signInBtn: 'Sign In to Console',
-      demoLoginNotice: 'This is an interactive frontend prototype. Click Sign In to launch the console directly.',
+      demoLoginNotice: 'Enterprise restaurant operations platform. Enter your credentials to access the management portal.',
       features: [
         'AI scheduling engine cuts overall labor overhead by up to 14%',
         'Predictive supply forecasting prevents stockouts with 98% accuracy',
         'Real-time kitchen display and ticket latency telemetry',
       ],
-      quickAccess: 'Quick Demo Access',
+      quickAccess: 'Direct Access',
       viewDashboard: 'Launch Manager Console',
     }
   }

@@ -32,7 +32,7 @@ async function handleLogin() {
 
     <div class="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center">
       <div class="inline-flex items-center justify-center p-3 rounded-2xl bg-[#0b131a] border border-slate-800 shadow-2xl mb-4">
-        <img src="/branding/logo-mark.webp" alt="RestoraIntel" class="w-12 h-12 object-contain" />
+        <img src="/branding/logo-without-bg-trimmed.webp" alt="RestoraIntel" class="h-12 w-auto object-contain drop-shadow-[0_2px_12px_rgba(78,222,227,0.3)]" />
       </div>
       <h2 class="text-2xl font-bold tracking-tight text-white font-sans">
         {{ uiStore.language === 'ar' ? 'منصة ريستورا إنتل للعمليات' : 'RestoraIntel Operations Platform' }}

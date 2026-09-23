@@ -18,7 +18,7 @@ const contentMarginClass = computed(() => {
   if (uiStore.sidebarCollapsed) {
     return 'lg:ms-20';
   }
-  return 'lg:ms-68';
+  return 'lg:ms-72';
 });
 </script>
 

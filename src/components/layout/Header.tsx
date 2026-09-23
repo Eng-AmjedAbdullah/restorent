@@ -16,6 +16,7 @@ import {
   Flame,
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { PageId } from '../../types';
 import { Avatar } from '../ui/Avatar';
 import { translateTimestamp } from '../../utils/localization';
 
@@ -302,7 +303,7 @@ export const Header: React.FC = () => {
                     onClick={() => {
                       markAlertAsRead(alert.id);
                       if (alert.action_link) {
-                        setCurrentPage(alert.action_link);
+                        setCurrentPage(alert.action_link as PageId);
                         setNotificationsOpen(false);
                       }
                     }}

@@ -21,11 +21,11 @@ export interface Organization {
 
 export interface Restaurant {
   id: string;
-  organization_id: string;
+  organization_id?: string;
   name: { ar: string; en: string };
   code: string;
   city: { ar: string; en: string };
-  address: { ar: string; en: string };
+  address?: { ar: string; en: string };
   branch_type: 'flagship' | 'express' | 'dine_in' | 'cloud_kitchen';
   timezone: string;
   currency: string;
@@ -33,8 +33,8 @@ export interface Restaurant {
   capacity: number;
   manager_id: string;
   status: 'active' | 'maintenance' | 'closed';
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Branch {
@@ -74,33 +74,38 @@ export interface Role {
 
 export interface User {
   id: string;
-  organization_id: string;
+  organization_id?: string;
   restaurant_id: string;
   name: { ar: string; en: string };
   email: string;
   role: UserRole;
   phone?: string;
   avatar_url?: string;
-  is_active: boolean;
+  is_active?: boolean;
+  preferences?: {
+    language?: 'ar' | 'en';
+    notifications_enabled?: boolean;
+    dark_mode?: boolean;
+  };
   last_login_at?: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Position {
   id: string;
-  organization_id: string;
+  organization_id?: string;
   title: { ar: string; en: string };
   department: 'kitchen' | 'service' | 'bar' | 'management' | 'stewarding';
   hourly_rate_sar: number;
   min_experience_years: number;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Employee {
   id: string;
-  restaurant_id: string;
+  restaurant_id?: string;
   employee_code: string;
   first_name: { ar: string; en: string };
   last_name: { ar: string; en: string };
@@ -125,8 +130,8 @@ export interface Employee {
     relationship: string;
     phone: string;
   };
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Attendance {
@@ -146,8 +151,8 @@ export interface Attendance {
   manager_override_by?: string;
   manager_notes?: string;
   device_source?: 'kiosk' | 'mobile_geofence' | 'biometric' | 'manual_override';
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Shift {
@@ -157,6 +162,7 @@ export interface Shift {
   employee?: Employee;
   date: string; // YYYY-MM-DD
   shift_name: { ar: string; en: string };
+  role_id?: string;
   station: 'hot_line' | 'prep' | 'grill' | 'expo' | 'barista' | 'cashier' | 'floor_captain' | 'hostess';
   start_time: string; // HH:mm
   end_time: string;
@@ -164,8 +170,8 @@ export interface Shift {
   is_overtime: boolean;
   status: 'scheduled' | 'in_progress' | 'completed' | 'gap_uncovered' | 'ai_suggested';
   notes?: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface LeaveRequest {
@@ -184,13 +190,13 @@ export interface LeaveRequest {
   actioned_by?: string;
   actioned_at?: string;
   rejection_reason?: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface MenuItem {
   id: string;
-  restaurant_id: string;
+  restaurant_id?: string;
   name: { ar: string; en: string };
   description: { ar: string; en: string };
   category: 'appetizers' | 'mains' | 'steaks' | 'pasta' | 'beverages' | 'desserts';
@@ -205,13 +211,13 @@ export interface MenuItem {
   allergens: string[];
   image_url?: string;
   tags: string[];
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface OrderItem {
-  id: string;
-  order_id: string;
+  id?: string;
+  order_id?: string;
   menu_item_id: string;
   name: { ar: string; en: string };
   quantity: number;
@@ -235,13 +241,13 @@ export interface Order {
   subtotal: number;
   tax: number;
   total: number;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface InventoryItem {
   id: string;
-  restaurant_id: string;
+  restaurant_id?: string;
   sku: string;
   name: { ar: string; en: string };
   category: 'meat_poultry' | 'dairy' | 'produce' | 'dry_goods' | 'beverages' | 'packaging';
@@ -254,8 +260,8 @@ export interface InventoryItem {
   supplier_name: string;
   last_restocked_at: string;
   predicted_days_remaining: number;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 /**

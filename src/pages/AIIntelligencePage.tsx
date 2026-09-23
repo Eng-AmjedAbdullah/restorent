@@ -283,7 +283,7 @@ export const AIIntelligencePage: React.FC = () => {
                       {language === 'ar' ? 'إشارات البيانات الداعمة:' : 'Supporting Data Signals:'}
                     </span>
                     <ul className="text-slate-600 space-y-1 list-disc list-inside">
-                      {rec.data_points?.map((dp, i) => (
+                      {rec.data_points?.map((dp: string, i: number) => (
                         <li key={i} className="leading-relaxed">
                           {translateDataPoint(dp, language)}
                         </li>

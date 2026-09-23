@@ -16,6 +16,34 @@ export type RouteId =
   | 'branding-preview'
   | 'login';
 
+export type PageId = RouteId;
+
+export interface AIRecommendation {
+  id: string;
+  category: 'staffing' | 'inventory' | 'scheduling' | 'waste' | 'revenue';
+  title: { ar: string; en: string };
+  description: { ar: string; en: string };
+  impact: { ar: string; en: string };
+  urgency: 'high' | 'medium' | 'low';
+  confidence_score: number;
+  data_points: string[];
+  suggested_action: { ar: string; en: string };
+  status: 'pending' | 'accepted' | 'rejected' | 'applied';
+  created_at?: string;
+}
+
+export interface AlertItem {
+  id: string;
+  type: 'critical' | 'warning' | 'info' | 'ai' | 'operational';
+  urgency?: 'high' | 'medium' | 'low';
+  title: { ar: string; en: string };
+  message: { ar: string; en: string };
+  timestamp: string;
+  read: boolean;
+  action_link?: string;
+  created_at?: string;
+}
+
 export type BadgeVariant = 'neutral' | 'cyan' | 'teal' | 'success' | 'warning' | 'danger';
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
 export type ButtonSize = 'sm' | 'md' | 'lg';

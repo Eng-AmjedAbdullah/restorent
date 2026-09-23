@@ -66,7 +66,7 @@ export const EmployeesPage: React.FC = () => {
   const filteredEmployees = employees.filter(emp => {
     const fullName = `${emp.first_name[language]} ${emp.last_name[language]} ${emp.employee_code}`.toLowerCase();
     const matchesSearch = fullName.includes(searchQuery.toLowerCase());
-    const matchesDept = departmentFilter === 'all' || emp.position.department === departmentFilter;
+    const matchesDept = departmentFilter === 'all' || emp.position?.department === departmentFilter;
     const matchesStatus = statusFilter === 'all' || emp.status === statusFilter;
     return matchesSearch && matchesDept && matchesStatus;
   });
@@ -149,8 +149,8 @@ export const EmployeesPage: React.FC = () => {
       header: t.employees.columns.position,
       render: emp => (
         <div>
-          <span className="font-medium text-slate-800 block text-xs">{emp.position.title[language]}</span>
-          <span className="text-[11px] text-slate-400 capitalize">{t.employees[emp.position.department] || emp.position.department}</span>
+          <span className="font-medium text-slate-800 block text-xs">{emp.position?.title[language] || '—'}</span>
+          <span className="text-[11px] text-slate-400 capitalize">{emp.position ? (t.employees[emp.position.department] || emp.position.department) : ''}</span>
         </div>
       ),
     },
@@ -339,7 +339,7 @@ export const EmployeesPage: React.FC = () => {
                     {emp.first_name[language]} {emp.last_name[language]}
                   </h4>
                   <p className="text-xs text-slate-500 font-medium">
-                    {emp.position.title[language]}
+                    {emp.position?.title[language] || '—'}
                   </p>
                 </div>
               </div>
@@ -458,7 +458,7 @@ export const EmployeesPage: React.FC = () => {
         isOpen={!!selectedEmployee}
         onClose={() => setSelectedEmployee(null)}
         title={selectedEmployee ? `${selectedEmployee.first_name[language]} ${selectedEmployee.last_name[language]}` : ''}
-        subtitle={selectedEmployee ? `${selectedEmployee.employee_code} • ${selectedEmployee.position.title[language]}` : ''}
+        subtitle={selectedEmployee ? `${selectedEmployee.employee_code} • ${selectedEmployee.position?.title[language] || ''}` : ''}
         width="xl"
       >
         {selectedEmployee && (
@@ -485,7 +485,7 @@ export const EmployeesPage: React.FC = () => {
                     <h4 className="text-base font-bold text-slate-900">
                       {selectedEmployee.first_name[language]} {selectedEmployee.last_name[language]}
                     </h4>
-                    <p className="text-xs text-slate-500">{selectedEmployee.position.title[language]}</p>
+                    <p className="text-xs text-slate-500">{selectedEmployee.position?.title[language] || ''}</p>
                     <div className="mt-2 flex items-center gap-2">
                       {getStatusBadge(selectedEmployee.status)}
                       <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700">

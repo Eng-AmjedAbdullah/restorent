@@ -74,7 +74,7 @@ function openAlerts() {
         @click="toggleLanguage"
       >
         <Languages class="w-3.5 h-3.5 text-[#34abb1]" />
-        <span>{{ uiStore.language === 'ar' ? 'English' : 'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©' }}</span>
+        <span>{{ uiStore.language === 'ar' ? 'English' : 'العربية' }}</span>
       </button>
 
       <!-- Notification Alerts -->

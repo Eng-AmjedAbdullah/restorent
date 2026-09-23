@@ -9,3 +9,4 @@ export * from './orders';
 export * from './inventory';
 export * from './reports';
 export * from './aiInsights';
+export * from './dashboard';

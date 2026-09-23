@@ -31,15 +31,13 @@ async function handleLogin() {
     <div class="absolute -bottom-40 -end-40 w-96 h-96 bg-[#34abb1]/10 rounded-full blur-3xl pointer-events-none"></div>
 
     <div class="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center">
-      <div class="inline-flex items-center justify-center p-3 rounded-2xl bg-[#0b131a] border border-slate-800 shadow-2xl mb-4">
-        <img src="/branding/logo-without-bg-trimmed.webp" alt="RestoraIntel" class="h-12 w-auto object-contain drop-shadow-[0_2px_12px_rgba(78,222,227,0.3)]" />
+      <div class="inline-flex items-center justify-center p-3.5 rounded-2xl bg-[#0b131a] border border-slate-800 shadow-2xl mb-4">
+        <img src="/branding/logo-without-bg-trimmed.webp" alt="RestoraIntel" class="h-14 w-auto object-contain drop-shadow-[0_2px_12px_rgba(78,222,227,0.3)]" />
       </div>
-      <h2 class="text-2xl font-bold tracking-tight text-white font-sans">
-        {{ uiStore.language === 'ar' ? 'منصة ريستورا إنتل للعمليات' : 'RestoraIntel Operations Platform' }}
-      </h2>
-      <p class="mt-2 text-sm text-slate-400">
-        {{ uiStore.language === 'ar' ? 'نظام تشغيل وإدارة سلاسل المطاعم بالذكاء الاصطناعي' : 'AI-Powered Enterprise Restaurant Operations System' }}
-      </p>
+      <div dir="ltr" class="flex items-center justify-center select-none font-sans">
+        <span class="font-black text-white text-3xl sm:text-4xl tracking-tight">Restora</span>
+        <span class="font-black text-[#4edee3] text-3xl sm:text-4xl tracking-tight ms-1">Intel</span>
+      </div>
     </div>
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10 px-4">

@@ -123,24 +123,24 @@ function handleLogout() {
     />
 
     <!-- Drawer Panel (Compact, high-level SaaS width) -->
-    <div class="relative w-[80%] max-w-[290px] bg-[#0b131a] text-slate-300 flex flex-col h-full z-10 shadow-2xl border-e border-[#162534]">
+    <div class="relative w-[82%] max-w-[310px] bg-[#0b131a] text-slate-300 flex flex-col h-full z-10 shadow-2xl border-e border-[#162534]">
       <!-- Drawer Header (Consistent with Main Header Height) -->
-      <div class="h-[76px] sm:h-[80px] flex items-center justify-between px-3.5 border-b border-[#162534] shrink-0">
-        <div class="flex items-center gap-2.5 min-w-0">
+      <div class="h-[76px] sm:h-[80px] flex items-center justify-between px-3.5 sm:px-4 border-b border-[#162534] shrink-0">
+        <router-link to="/dashboard" class="flex items-center gap-1.5 shrink-0" @click="close">
           <img
             src="/branding/logo-without-bg-trimmed.webp"
             alt="RestoraIntel Logo"
-            class="h-8 sm:h-9 w-auto max-w-[54px] object-contain shrink-0 drop-shadow-[0_2px_8px_rgba(78,222,227,0.25)]"
+            class="h-8 sm:h-9 w-auto max-w-[46px] object-contain shrink-0 drop-shadow-[0_2px_8px_rgba(78,222,227,0.3)]"
           />
-          <div dir="ltr" class="flex items-center gap-0.5 select-none">
-            <span class="font-black text-white text-lg sm:text-xl tracking-tight">Restora</span>
-            <span class="font-black text-[#4edee3] text-lg sm:text-xl tracking-tight">Intel</span>
+          <div dir="ltr" class="flex items-center select-none font-sans whitespace-nowrap">
+            <span class="font-black text-white text-xl tracking-tight leading-none">Restora</span>
+            <span class="font-black text-[#4edee3] text-xl tracking-tight leading-none ms-0.5">Intel</span>
           </div>
-        </div>
+        </router-link>
 
         <button
           type="button"
-          class="p-2 text-slate-400 hover:text-white hover:bg-[#12202f] rounded-xl cursor-pointer transition-colors"
+          class="p-2 text-slate-400 hover:text-white hover:bg-[#12202f] rounded-xl cursor-pointer transition-colors shrink-0"
           :aria-label="uiStore.language === 'ar' ? 'إغلاق القائمة' : 'Close Menu'"
           @click="close"
         >

@@ -100,29 +100,29 @@ function handleLogout() {
   <aside
     :class="[
       'fixed inset-y-0 start-0 z-30 flex flex-col bg-[#0b131a] text-slate-300 transition-all duration-300 border-e border-slate-800/80 select-none',
-      isCollapsed ? 'w-20' : 'w-60'
+      isCollapsed ? 'w-20' : 'w-68'
     ]"
   >
     <!-- Brand Header -->
-    <div class="h-[76px] sm:h-[80px] flex items-center justify-between px-3.5 border-b border-slate-800/80 shrink-0">
-      <router-link to="/dashboard" class="flex items-center gap-2.5 overflow-hidden">
+    <div class="h-[76px] sm:h-[80px] flex items-center justify-between px-3 sm:px-3.5 border-b border-slate-800/80 shrink-0">
+      <router-link to="/dashboard" class="flex items-center gap-1.5 group shrink-0">
         <!-- Logo Image: cropped logo without background -->
         <img
           src="/branding/logo-without-bg-trimmed.webp"
           alt="RestoraIntel Logo"
-          class="h-8 sm:h-9 w-auto max-w-[54px] object-contain shrink-0 drop-shadow-[0_2px_8px_rgba(78,222,227,0.25)]"
+          class="h-8 sm:h-9 w-auto max-w-[46px] object-contain shrink-0 drop-shadow-[0_2px_8px_rgba(78,222,227,0.3)] transition-transform duration-200 group-hover:scale-105"
         />
-        <div v-if="!isCollapsed" class="flex items-center min-w-0 transition-opacity duration-200">
-          <div dir="ltr" class="flex items-center gap-0.5 select-none">
-            <span class="font-black text-white text-lg sm:text-xl tracking-tight">Restora</span>
-            <span class="font-black text-[#4edee3] text-lg sm:text-xl tracking-tight">Intel</span>
+        <div v-if="!isCollapsed" class="flex items-center transition-opacity duration-200">
+          <div dir="ltr" class="flex items-center select-none font-sans whitespace-nowrap">
+            <span class="font-black text-white text-xl tracking-tight leading-none">Restora</span>
+            <span class="font-black text-[#4edee3] text-xl tracking-tight leading-none ms-0.5">Intel</span>
           </div>
         </div>
       </router-link>
 
       <button
         type="button"
-        class="hidden lg:flex w-7 h-7 rounded-lg items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+        class="hidden lg:flex w-7 h-7 rounded-lg items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer shrink-0 ms-1"
         @click="uiStore.toggleSidebar"
       >
         <component

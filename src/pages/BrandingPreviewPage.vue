@@ -290,9 +290,9 @@ function filteredAssets() {
               alt="Logo Preview"
               class="h-10 w-auto object-contain drop-shadow-[0_2px_10px_rgba(78,222,227,0.3)]"
             />
-            <div dir="ltr" class="flex items-center gap-0.5 select-none">
-              <span class="font-black text-white text-xl tracking-tight">Restora</span>
-              <span class="font-black text-[#4edee3] text-xl tracking-tight">Intel</span>
+            <div dir="ltr" class="flex items-center select-none font-sans">
+              <span class="font-black text-white text-xl sm:text-2xl tracking-tight leading-none">Restora</span>
+              <span class="font-black text-[#4edee3] text-xl sm:text-2xl tracking-tight leading-none ms-0.5">Intel</span>
             </div>
           </div>
           <span class="text-[11px] text-emerald-400 font-semibold">✓ Exact Live Sidebar & Drawer Ratio</span>
@@ -307,9 +307,9 @@ function filteredAssets() {
               alt="Logo Preview Light"
               class="h-10 w-auto object-contain"
             />
-            <div dir="ltr" class="flex items-center gap-0.5 select-none">
-              <span class="font-black text-slate-900 text-xl tracking-tight">Restora</span>
-              <span class="font-black text-[#0f766e] text-xl tracking-tight">Intel</span>
+            <div dir="ltr" class="flex items-center select-none font-sans">
+              <span class="font-black text-slate-900 text-xl sm:text-2xl tracking-tight leading-none">Restora</span>
+              <span class="font-black text-[#0f766e] text-xl sm:text-2xl tracking-tight leading-none ms-0.5">Intel</span>
             </div>
           </div>
           <span class="text-[11px] text-teal-700 font-semibold">✓ Transparent PNG / Alpha Channel</span>

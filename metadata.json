@@ -1,0 +1,8 @@
+{
+  "name": "RestoraIntel",
+  "description": "AI-powered Restaurant Operations Management Platform for enterprise restaurant chains with bilingual Arabic/English RTL support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -28,12 +28,12 @@ function openAlerts() {
 </script>
 
 <template>
-  <header class="sticky top-0 z-20 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between gap-4">
+  <header class="sticky top-0 z-20 h-16 bg-[#0b131a] text-slate-300 border-b border-slate-800/80 px-4 sm:px-6 flex items-center justify-between gap-4">
     <!-- Left: Mobile Menu & Restaurant Switcher -->
     <div class="flex items-center gap-3">
       <button
         type="button"
-        class="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+        class="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors cursor-pointer"
         @click="uiStore.setMobileMenuOpen(true)"
       >
         <Menu class="w-5 h-5" />
@@ -51,7 +51,7 @@ function openAlerts() {
           v-model="searchQuery"
           type="text"
           :placeholder="$t('common.search')"
-          class="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 focus:bg-white focus:border-[#34abb1] focus:ring-2 focus:ring-[#34abb1]/20 rounded-xl py-1.5 ps-9 pe-4 text-xs transition-all outline-none"
+          class="w-full bg-slate-900/90 border border-slate-800 hover:border-slate-700 focus:bg-slate-900 focus:border-[#4edee3] focus:ring-2 focus:ring-[#4edee3]/20 rounded-xl py-1.5 ps-9 pe-4 text-xs text-slate-100 placeholder-slate-500 transition-all outline-none"
         />
       </div>
     </div>
@@ -61,7 +61,7 @@ function openAlerts() {
       <!-- AI Simulation Badge (Demo Clarification) -->
       <router-link
         to="/ai-intelligence"
-        class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#4edee3]/15 text-[#2c777c] border border-[#4edee3]/30 text-xs font-semibold hover:bg-[#4edee3]/25 transition-colors"
+        class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#4edee3]/15 text-[#4edee3] border border-[#4edee3]/30 text-xs font-semibold hover:bg-[#4edee3]/25 transition-colors"
       >
         <Sparkles class="w-3.5 h-3.5" />
         <span>{{ $t('common.aiSimulationBadge') }}</span>
@@ -70,36 +70,36 @@ function openAlerts() {
       <!-- Language Switcher -->
       <button
         type="button"
-        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition-colors shadow-2xs cursor-pointer"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-xs font-bold text-slate-200 transition-colors shadow-2xs cursor-pointer"
         @click="toggleLanguage"
       >
-        <Languages class="w-3.5 h-3.5 text-[#34abb1]" />
+        <Languages class="w-3.5 h-3.5 text-[#4edee3]" />
         <span>{{ uiStore.language === 'ar' ? 'English' : 'العربية' }}</span>
       </button>
 
       <!-- Notification Alerts -->
       <button
         type="button"
-        class="relative p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+        class="relative p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors cursor-pointer"
         :title="$t('common.notifications')"
         @click="openAlerts"
       >
         <Bell class="w-4 h-4" />
-        <span class="absolute top-1.5 end-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
+        <span class="absolute top-1.5 end-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-[#0b131a]"></span>
       </button>
 
       <!-- User Chip -->
-      <div class="flex items-center gap-2 ps-2 border-s border-slate-200">
+      <div class="flex items-center gap-2 ps-2 border-s border-slate-800">
         <img
           :src="authStore.currentUser?.avatar_url || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=160&auto=format&fit=crop&q=80'"
           alt="Avatar"
-          class="w-8 h-8 rounded-xl object-cover border border-slate-200"
+          class="w-8 h-8 rounded-xl object-cover border border-slate-700"
         />
         <div class="hidden xl:flex flex-col text-start">
-          <span class="text-xs font-bold text-slate-800 leading-tight">
+          <span class="text-xs font-bold text-white leading-tight">
             {{ authStore.currentUser?.name[uiStore.language] }}
           </span>
-          <span class="text-[10px] text-slate-500">
+          <span class="text-[10px] text-[#4edee3]">
             {{ $t('common.userRole') }}
           </span>
         </div>

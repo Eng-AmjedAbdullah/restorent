@@ -14,7 +14,7 @@ import type { EmployeePresentationModel } from '../presentation/employee.present
 import type { LocalizedString } from '../presentation/restaurant.presentation';
 import type { MapperOptions } from './restaurant.mapper';
 import {
-  MOCK_LOCALIZATION_CATALOG,
+  MOCK_EMPLOYEE_LOCALIZATION,
   EMPLOYEE_STATUS_LABELS,
 } from './localizationCatalog';
 
@@ -25,8 +25,10 @@ export function mapEmployeeToPresentation(
   dto: EmployeeDto,
   options: MapperOptions = { useMockCatalog: true }
 ): EmployeePresentationModel {
+  const strId = String(dto.id);
+  const legacyKey = `emp-${dto.id}`;
   const catalogEntry = options.useMockCatalog !== false
-    ? MOCK_LOCALIZATION_CATALOG[dto.id]
+    ? (MOCK_EMPLOYEE_LOCALIZATION[dto.id] || MOCK_EMPLOYEE_LOCALIZATION[legacyKey])
     : undefined;
 
   const firstName: LocalizedString = catalogEntry?.first_name || {
@@ -53,11 +55,15 @@ export function mapEmployeeToPresentation(
     variant: 'default' as const,
   };
 
+  const fallbackCode = `EMP-${String(dto.id).padStart(4, '0')}`;
+
   return {
     id: dto.id,
+    string_id: strId,
+    legacy_id: legacyKey,
     restaurant_id: dto.restaurant_id,
     employee_number: dto.employee_number,
-    employee_code: dto.employee_number, // Backward compatibility alias
+    employee_code: dto.employee_number || fallbackCode,
     first_name: firstName,
     last_name: lastName,
     full_name: fullName,
@@ -94,24 +100,42 @@ export function mapToCreateEmployeeRequest(
   const firstName = presentation.raw_first_name || presentation.first_name?.en || presentation.first_name?.ar || '';
   const lastName = presentation.raw_last_name || presentation.last_name?.en || presentation.last_name?.ar || '';
 
-  return {
+  const payload: CreateEmployeeRequest = {
     first_name: firstName,
     last_name: lastName,
-    email: presentation.email || '',
-    phone: presentation.phone || '',
-    hire_date: presentation.hire_date || new Date().toISOString().split('T')[0],
-    employee_number: presentation.employee_number || presentation.employee_code,
     status: presentation.status || 'active',
-    user_id: presentation.user_id !== undefined ? presentation.user_id : null,
-    position_id: presentation.position_id !== undefined ? presentation.position_id : null,
   };
+
+  if (presentation.employee_number !== undefined) {
+    payload.employee_number = presentation.employee_number;
+  } else if (presentation.employee_code) {
+    payload.employee_number = presentation.employee_code;
+  }
+
+  if (presentation.email !== undefined) {
+    payload.email = presentation.email;
+  }
+  if (presentation.phone !== undefined) {
+    payload.phone = presentation.phone;
+  }
+  if (presentation.hire_date !== undefined) {
+    payload.hire_date = presentation.hire_date;
+  }
+  if (presentation.user_id !== undefined) {
+    payload.user_id = presentation.user_id;
+  }
+  if (presentation.position_id !== undefined) {
+    payload.position_id = presentation.position_id;
+  }
+
+  return payload;
 }
 
 /**
  * Maps Presentation Model inputs into UpdateEmployeeRequest
  *
  * PROHIBITED IN REQUEST:
- * - `id`: immutable
+ * - `id`: immutable primary key
  * - `restaurant_id`: cannot change employee tenant via update endpoint
  * - `created_at`, `updated_at`, `deleted_at`: managed by Eloquent
  */
@@ -121,38 +145,40 @@ export function mapToUpdateEmployeeRequest(
     raw_last_name?: string;
   }
 ): UpdateEmployeeRequest {
-  const req: UpdateEmployeeRequest = {};
+  const payload: UpdateEmployeeRequest = {};
 
-  if (presentation.raw_first_name || presentation.first_name) {
-    req.first_name = presentation.raw_first_name || presentation.first_name?.en || presentation.first_name?.ar;
+  if (presentation.raw_first_name !== undefined || presentation.first_name !== undefined) {
+    payload.first_name = presentation.raw_first_name || presentation.first_name?.en || presentation.first_name?.ar;
   }
-  if (presentation.raw_last_name || presentation.last_name) {
-    req.last_name = presentation.raw_last_name || presentation.last_name?.en || presentation.last_name?.ar;
+  if (presentation.raw_last_name !== undefined || presentation.last_name !== undefined) {
+    payload.last_name = presentation.raw_last_name || presentation.last_name?.en || presentation.last_name?.ar;
+  }
+  if (presentation.employee_number !== undefined) {
+    payload.employee_number = presentation.employee_number;
+  } else if (presentation.employee_code !== undefined) {
+    payload.employee_number = presentation.employee_code;
   }
   if (presentation.email !== undefined) {
-    req.email = presentation.email;
+    payload.email = presentation.email;
   }
   if (presentation.phone !== undefined) {
-    req.phone = presentation.phone;
+    payload.phone = presentation.phone;
   }
   if (presentation.hire_date !== undefined) {
-    req.hire_date = presentation.hire_date;
+    payload.hire_date = presentation.hire_date;
   }
   if (presentation.termination_date !== undefined) {
-    req.termination_date = presentation.termination_date;
-  }
-  if (presentation.employee_number !== undefined || presentation.employee_code !== undefined) {
-    req.employee_number = presentation.employee_number || presentation.employee_code;
+    payload.termination_date = presentation.termination_date;
   }
   if (presentation.status !== undefined) {
-    req.status = presentation.status;
+    payload.status = presentation.status;
   }
   if (presentation.user_id !== undefined) {
-    req.user_id = presentation.user_id;
+    payload.user_id = presentation.user_id;
   }
   if (presentation.position_id !== undefined) {
-    req.position_id = presentation.position_id;
+    payload.position_id = presentation.position_id;
   }
 
-  return req;
+  return payload;
 }

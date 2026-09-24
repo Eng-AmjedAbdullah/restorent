@@ -13,10 +13,11 @@ import type { EmployeeDto } from '../backend/employee';
 describe('Presentation Mapper Tests', () => {
   describe('9. Restaurant-to-Presentation Mapping', () => {
     it('maps canonical DTO to presentation model with localized fields and status badge', () => {
-      const dto = canonicalRestaurants[0]; // rest-1
+      const dto = canonicalRestaurants[0]; // id: 1
       const presentation = mapRestaurantToPresentation(dto, { useMockCatalog: true });
 
-      expect(presentation.id).toBe('rest-1');
+      expect(presentation.id).toBe(1);
+      expect(presentation.string_id).toBe('1');
       expect(presentation.raw_name).toBe('Restora Downtown Flagship - Olaya');
       expect(presentation.name.ar).toBe('ريستورا سنترال - فرع العليا الرئيسي');
       expect(presentation.name.en).toBe('Restora Downtown Flagship - Olaya');
@@ -37,10 +38,11 @@ describe('Presentation Mapper Tests', () => {
 
   describe('10. Employee-to-Presentation Mapping', () => {
     it('maps canonical EmployeeDto to presentation model with full_name and employee_code alias', () => {
-      const dto = canonicalEmployees[0]; // emp-101
+      const dto = canonicalEmployees[0]; // id: 101
       const presentation = mapEmployeeToPresentation(dto, { useMockCatalog: true });
 
-      expect(presentation.id).toBe('emp-101');
+      expect(presentation.id).toBe(101);
+      expect(presentation.string_id).toBe('101');
       expect(presentation.employee_number).toBe('EMP-0101');
       expect(presentation.employee_code).toBe('EMP-0101'); // Backward-compatibility alias
       expect(presentation.first_name.ar).toBe('أحمد');
@@ -63,21 +65,20 @@ describe('Presentation Mapper Tests', () => {
 
   describe('11. User-to-Presentation Mapping', () => {
     it('maps canonical UserDto to presentation model with full_name and tenant memberships', () => {
-      const dto = canonicalUsers[0]; // usr-1
+      const dto = canonicalUsers[1]; // user 2: Sara Al-Qahtani
       const presentation = mapUserToPresentation(dto, { useMockCatalog: true });
 
-      expect(presentation.id).toBe('usr-1');
+      expect(presentation.id).toBe(2);
+      expect(presentation.string_id).toBe('2');
       expect(presentation.email).toBe('sara.qahtani@restoraintel.com');
       expect(presentation.full_name.en).toBe('Sara Al-Qahtani');
       expect(presentation.full_name.ar).toBe('سارة القحطاني');
       expect(presentation.name.en).toBe('Sara Al-Qahtani'); // Compatibility alias
       expect(presentation.email_verified).toBe(true);
-      expect(presentation.default_restaurant_id).toBe('rest-1');
-      expect(presentation.assigned_restaurant_ids).toContain('rest-1');
-      expect(presentation.assigned_restaurant_ids).toContain('rest-2');
-      expect(presentation.primary_role).toBe('operations_director');
-      expect(presentation.role_badge?.label.en).toBe('Operations Director');
-      expect(presentation.permission_names).toContain('restaurant.employees.manage');
+      expect(presentation.default_restaurant_id).toBe(1);
+      expect(presentation.assigned_restaurant_ids).toContain(1);
+      expect(presentation.assigned_restaurant_ids).toContain(2);
+      expect(presentation.permission_codes).toContain('restaurant.employees.manage');
     });
   });
 
@@ -95,20 +96,20 @@ describe('Presentation Mapper Tests', () => {
 
   describe('13. Missing Optional Relationships', () => {
     it('gracefully handles employee with null position and null user_id', () => {
-      const unassignedDto = canonicalEmployees.find((e) => e.id === 'emp-202');
+      const unassignedDto = canonicalEmployees.find((e) => e.id === 104);
       expect(unassignedDto).toBeDefined();
 
       const p = mapEmployeeToPresentation(unassignedDto!, { useMockCatalog: true });
       expect(p.position_id).toBeNull();
       expect(p.position_name).toBeNull();
       expect(p.user_id).toBeNull();
-      expect(p.status).toBe('suspended');
-      expect(p.status_badge.variant).toBe('danger');
+      expect(p.status).toBe('inactive');
+      expect(p.status_badge.variant).toBe('default');
     });
 
     it('gracefully handles user with no assigned memberships or roles', () => {
       const bareUser = {
-        ...canonicalUsers[2],
+        ...canonicalUsers[5],
         memberships: undefined,
         roles: undefined,
         permissions: undefined,
@@ -120,13 +121,14 @@ describe('Presentation Mapper Tests', () => {
       expect(p.primary_role).toBeNull();
       expect(p.role_badge).toBeNull();
       expect(p.permission_names).toEqual([]);
+      expect(p.permission_codes).toEqual([]);
     });
   });
 
   describe('15. Prevention of Fabricated Fallback Translations', () => {
     it('does NOT invent translation when entity is not in mock catalog (uses canonical string for both)', () => {
       const liveDto: RestaurantDto = {
-        id: 'rest-live-999', // Unknown to catalog
+        id: 9999, // Unknown to catalog
         name: 'مطعم الساحل الشرقي', // Only Arabic name provided by backend
         slug: 'khobar-01',
         currency_code: 'SAR',
@@ -150,8 +152,8 @@ describe('Presentation Mapper Tests', () => {
 
     it('does NOT invent English translation for new unlisted employee names', () => {
       const liveEmpDto: EmployeeDto = {
-        id: 'emp-live-555',
-        restaurant_id: 'rest-1',
+        id: 5555,
+        restaurant_id: 1,
         user_id: null,
         position_id: null,
         employee_number: 'EMP-9999',

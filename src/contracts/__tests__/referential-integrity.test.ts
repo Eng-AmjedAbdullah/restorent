@@ -18,16 +18,21 @@ describe('Referential Integrity Tests', () => {
     });
 
     it('strictly isolates employees by restaurant tenant boundary', () => {
-      const rest1Employees = canonicalEmployees.filter((e) => e.restaurant_id === 'rest-1');
-      const rest2Employees = canonicalEmployees.filter((e) => e.restaurant_id === 'rest-2');
+      const rest1Employees = canonicalEmployees.filter((e) => e.restaurant_id === 1);
+      const rest2Employees = canonicalEmployees.filter((e) => e.restaurant_id === 2);
 
-      expect(rest1Employees.length).toBe(3);
+      expect(rest1Employees.length).toBe(6);
       expect(rest2Employees.length).toBe(3);
 
       const rest1EmpIds = new Set(rest1Employees.map((e) => e.id));
       for (const emp of rest2Employees) {
         expect(rest1EmpIds.has(emp.id)).toBe(false);
       }
+    });
+
+    it('supports empty restaurant employee collection for empty state testing', () => {
+      const emptyRestEmployees = canonicalEmployees.filter((e) => e.restaurant_id === 5);
+      expect(emptyRestEmployees.length).toBe(0);
     });
 
     it('ensures employee position_id references a valid position or is null', () => {
@@ -50,12 +55,16 @@ describe('Referential Integrity Tests', () => {
       }
     });
 
-    it('ensures employee user_id references an existing user when not null', () => {
-      const validUserIds = new Set(canonicalUsers.map((u) => u.id));
+    it('ensures employee user_id references an existing user with matching personal identity', () => {
+      const userMap = new Map(canonicalUsers.map((u) => [u.id, u]));
 
       for (const emp of canonicalEmployees) {
         if (emp.user_id !== null) {
-          expect(validUserIds.has(emp.user_id)).toBe(true);
+          const linkedUser = userMap.get(emp.user_id);
+          expect(linkedUser).toBeDefined();
+          // Verify that personal identity is consistent (first and last name match)
+          expect(emp.first_name).toBe(linkedUser!.name_first);
+          expect(emp.last_name).toBe(linkedUser!.name_last);
         }
       }
     });

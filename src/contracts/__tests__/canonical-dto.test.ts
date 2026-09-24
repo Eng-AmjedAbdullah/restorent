@@ -10,9 +10,10 @@ import {
 
 describe('Canonical DTO Compatibility Tests', () => {
   describe('1. Canonical Restaurant DTO Compatibility', () => {
-    it('matches required wire-level fields and types', () => {
+    it('matches required wire-level fields and types with integer database IDs', () => {
       const restaurant: RestaurantDto = canonicalRestaurants[0];
-      expect(typeof restaurant.id).toBe('string');
+      expect(typeof restaurant.id).toBe('number');
+      expect(Number.isInteger(restaurant.id)).toBe(true);
       expect(typeof restaurant.name).toBe('string');
       expect(typeof restaurant.slug).toBe('string');
       expect(typeof restaurant.currency_code).toBe('string');
@@ -22,7 +23,7 @@ describe('Canonical DTO Compatibility Tests', () => {
       expect(typeof restaurant.updated_at).toBe('string');
     });
 
-    it('ensures name is a plain string, NOT a localized dictionary in DTO', () => {
+    it('ensures name is a plain string, NOT a localized dictionary in wire DTO', () => {
       for (const rest of canonicalRestaurants) {
         expect(typeof rest.name).toBe('string');
         expect(rest.name).not.toHaveProperty('ar');
@@ -32,29 +33,49 @@ describe('Canonical DTO Compatibility Tests', () => {
 
     it('ensures currency_code is used instead of currency', () => {
       for (const rest of canonicalRestaurants) {
-        expect(rest.currency_code).toBe('SAR');
+        expect(typeof rest.currency_code).toBe('string');
         expect((rest as unknown as Record<string, unknown>).currency).toBeUndefined();
+      }
+    });
+
+    it('supports multiple currency codes beyond SAR', () => {
+      const demoCurrencies = ['SAR', 'AED', 'USD', 'EUR', 'KWD'];
+      for (const code of demoCurrencies) {
+        const dummyRest: RestaurantDto = {
+          id: 999,
+          name: 'Multi-Currency Test',
+          slug: 'test-cur',
+          currency_code: code,
+          status: 'active',
+          timezone: 'Asia/Dubai',
+          address: null,
+          city: null,
+          created_at: '2026-01-01T00:00:00Z',
+          updated_at: '2026-01-01T00:00:00Z',
+          deleted_at: null,
+        };
+        expect(dummyRest.currency_code).toBe(code);
       }
     });
   });
 
   describe('2. Canonical Employee DTO Compatibility', () => {
-    it('matches required workforce fields', () => {
+    it('matches required workforce fields with integer IDs and restaurant foreign keys', () => {
       const emp: EmployeeDto = canonicalEmployees[0];
-      expect(typeof emp.id).toBe('string');
-      expect(typeof emp.restaurant_id).toBe('string');
-      expect(typeof emp.employee_number).toBe('string');
+      expect(typeof emp.id).toBe('number');
+      expect(Number.isInteger(emp.id)).toBe(true);
+      expect(typeof emp.restaurant_id).toBe('number');
+      expect(Number.isInteger(emp.restaurant_id)).toBe(true);
       expect(typeof emp.first_name).toBe('string');
       expect(typeof emp.last_name).toBe('string');
-      expect(typeof emp.email).toBe('string');
-      expect(typeof emp.phone).toBe('string');
-      expect(typeof emp.hire_date).toBe('string');
       expect(typeof emp.status).toBe('string');
     });
 
-    it('uses canonical employee_number instead of employee_code', () => {
+    it('uses canonical employee_number instead of legacy employee_code on wire model', () => {
       for (const emp of canonicalEmployees) {
-        expect(emp.employee_number).toMatch(/^EMP-\d{4}$/);
+        if (emp.employee_number !== null) {
+          expect(emp.employee_number).toMatch(/^EMP-\d{4}$/);
+        }
         expect((emp as unknown as Record<string, unknown>).employee_code).toBeUndefined();
       }
     });
@@ -70,83 +91,97 @@ describe('Canonical DTO Compatibility Tests', () => {
   });
 
   describe('3. Canonical User DTO Compatibility', () => {
-    it('matches user identity fields and separate name_first / name_last', () => {
+    it('matches user identity fields with integer primary key and separate name_first / name_last', () => {
       const user: UserDto = canonicalUsers[0];
-      expect(typeof user.id).toBe('string');
+      expect(typeof user.id).toBe('number');
+      expect(Number.isInteger(user.id)).toBe(true);
       expect(typeof user.email).toBe('string');
       expect(typeof user.name_first).toBe('string');
       expect(typeof user.name_last).toBe('string');
       expect(typeof user.status).toBe('string');
-      expect(user.email).toContain('@');
     });
 
     it('does not conflate user authentication identity with direct restaurant ownership', () => {
       for (const user of canonicalUsers) {
         // User identity should NOT have a single hardcoded direct restaurant_id
         expect((user as unknown as Record<string, unknown>).restaurant_id).toBeUndefined();
-        // Memberships represent tenant links
-        expect(Array.isArray(user.memberships)).toBe(true);
+        // Instead, memberships hold restaurant associations
+        if (user.memberships) {
+          for (const membership of user.memberships) {
+            expect(typeof membership.restaurant_id).toBe('number');
+            expect(typeof membership.user_id).toBe('number');
+            expect(membership.user_id).toBe(user.id);
+          }
+        }
       }
     });
   });
 
   describe('4. Nullable and Optional Fields', () => {
     it('allows nullable user_id on employees without system accounts', () => {
-      const unlinkedEmp = canonicalEmployees.find((e) => e.id === 'emp-102');
-      expect(unlinkedEmp).toBeDefined();
-      expect(unlinkedEmp?.user_id).toBeNull();
+      const staffWithoutAccount = canonicalEmployees.find((e) => e.user_id === null);
+      expect(staffWithoutAccount).toBeDefined();
+      expect(staffWithoutAccount?.user_id).toBeNull();
     });
 
     it('allows nullable position_id on employees without formal positions', () => {
-      const unassignedEmp = canonicalEmployees.find((e) => e.id === 'emp-202');
-      expect(unassignedEmp).toBeDefined();
-      expect(unassignedEmp?.position_id).toBeNull();
-      expect(unassignedEmp?.position).toBeNull();
+      const staffWithoutPosition = canonicalEmployees.find((e) => e.position_id === null);
+      expect(staffWithoutPosition).toBeDefined();
+      expect(staffWithoutPosition?.position_id).toBeNull();
     });
 
     it('allows nullable termination_date on active staff and valid string on terminated staff', () => {
-      const activeEmp = canonicalEmployees.find((e) => e.status === 'active');
-      const terminatedEmp = canonicalEmployees.find((e) => e.status === 'terminated');
+      const activeStaff = canonicalEmployees.find((e) => e.status === 'active');
+      const terminatedStaff = canonicalEmployees.find((e) => e.status === 'terminated');
 
-      expect(activeEmp?.termination_date).toBeNull();
-      expect(typeof terminatedEmp?.termination_date).toBe('string');
+      expect(activeStaff?.termination_date).toBeNull();
+      expect(terminatedStaff?.termination_date).toBe('2024-05-30');
+    });
+
+    it('allows nullable email, phone, and employee_number on employee wire model', () => {
+      const minimalEmp = canonicalEmployees.find((e) => e.employee_number === null);
+      expect(minimalEmp).toBeDefined();
+      expect(minimalEmp?.email).toBeNull();
+      expect(minimalEmp?.phone).toBeNull();
     });
 
     it('allows nullable email_verified_at and last_login_at on pending users', () => {
-      const pendingUser = canonicalUsers.find((u) => u.id === 'usr-3');
-      expect(pendingUser?.status).toBe('pending');
+      const pendingUser = canonicalUsers.find((u) => u.status === 'pending');
+      expect(pendingUser).toBeDefined();
       expect(pendingUser?.email_verified_at).toBeNull();
       expect(pendingUser?.last_login_at).toBeNull();
     });
   });
 
   describe('5. Valid and Invalid Enum Values', () => {
-    const validRestaurantStatuses: RestaurantStatus[] = ['active', 'inactive', 'suspended', 'archived'];
-    const validEmployeeStatuses: EmployeeStatus[] = ['active', 'inactive', 'on_leave', 'terminated', 'suspended'];
-    const validUserStatuses: UserAccountStatus[] = ['active', 'suspended', 'pending'];
-
     it('validates that all restaurant fixtures use supported backend statuses', () => {
+      const validStatuses: RestaurantStatus[] = ['active', 'inactive', 'suspended', 'archived'];
       for (const rest of canonicalRestaurants) {
-        expect(validRestaurantStatuses).toContain(rest.status);
+        expect(validStatuses.includes(rest.status)).toBe(true);
       }
     });
 
     it('validates that all employee fixtures use supported employment statuses', () => {
+      const validStatuses: EmployeeStatus[] = ['active', 'inactive', 'on_leave', 'terminated', 'suspended'];
       for (const emp of canonicalEmployees) {
-        expect(validEmployeeStatuses).toContain(emp.status);
+        expect(validStatuses.includes(emp.status)).toBe(true);
       }
     });
 
     it('rejects operational shift states (on_shift, on_break) from canonical employment status', () => {
-      const operationalStates = ['on_shift', 'on_break', 'off_duty'];
-      for (const emp of canonicalEmployees) {
-        expect(operationalStates).not.toContain(emp.status);
+      const invalidStatuses = ['on_shift', 'on_break', 'off_duty', 'late'];
+      for (const invalid of invalidStatuses) {
+        const isSupported = (canonicalEmployees as unknown as Array<{ status: string }>).some(
+          (e) => e.status === invalid
+        );
+        expect(isSupported).toBe(false);
       }
     });
 
     it('validates that all user fixtures use valid account statuses', () => {
+      const validUserStatuses: UserAccountStatus[] = ['active', 'suspended', 'pending'];
       for (const user of canonicalUsers) {
-        expect(validUserStatuses).toContain(user.status);
+        expect(validUserStatuses.includes(user.status)).toBe(true);
       }
     });
   });

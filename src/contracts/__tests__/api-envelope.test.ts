@@ -23,21 +23,21 @@ describe('API Response Envelope & Request Payload Tests', () => {
         status: 'success',
         message: 'Restaurants retrieved successfully.',
         data: canonicalRestaurants,
-        meta: { total: 3, page: 1 },
+        meta: { total: 5, page: 1 },
       };
 
       expect(response.status).toBe('success');
       expect(response.message).toBe('Restaurants retrieved successfully.');
       expect(Array.isArray(response.data)).toBe(true);
-      expect(response.data.length).toBe(3);
+      expect(response.data.length).toBe(5);
       expect(response.meta).toBeDefined();
     });
 
     it('supports empty array meta envelope as common in Laravel resource responses', () => {
-      const response: ApiSuccessResponse<{ id: string }> = {
+      const response: ApiSuccessResponse<{ id: number }> = {
         status: 'success',
         message: 'Resource retrieved.',
-        data: { id: 'rest-1' },
+        data: { id: 1 },
         meta: [],
       };
 
@@ -93,7 +93,7 @@ describe('API Response Envelope & Request Payload Tests', () => {
     it('structures HTTP 404 not found response with null errors', () => {
       const notFoundError: ApiNotFoundErrorResponse = {
         status: 'error',
-        message: 'No query results for model [App\\Models\\Employee] emp-999',
+        message: 'No query results for model [App\\Models\\Employee] 999',
         errors: null,
         meta: [],
       };
@@ -104,11 +104,12 @@ describe('API Response Envelope & Request Payload Tests', () => {
   });
 
   describe('8. Request Payload Restrictions', () => {
-    it('prohibits database-generated ID and timestamps when creating a restaurant', () => {
+    it('prohibits database-generated ID and timestamps when creating a restaurant, but allows slug', () => {
       const createReq = mapToCreateRestaurantRequest({
-        id: 'forbidden-id-123',
+        id: 999,
         name: { ar: 'فرع تجريبي', en: 'Demo Branch' },
         raw_name: 'Demo Branch',
+        slug: 'demo-branch-01',
         currency_code: 'SAR',
         timezone: 'Asia/Riyadh',
         created_at: '2026-01-01',
@@ -117,29 +118,31 @@ describe('API Response Envelope & Request Payload Tests', () => {
 
       expect(createReq.name).toBe('Demo Branch');
       expect(createReq.currency_code).toBe('SAR');
+      expect(createReq.slug).toBe('demo-branch-01'); // Slug is permitted in Laravel contract!
       expect((createReq as unknown as Record<string, unknown>).id).toBeUndefined();
       expect((createReq as unknown as Record<string, unknown>).created_at).toBeUndefined();
       expect((createReq as unknown as Record<string, unknown>).updated_at).toBeUndefined();
-      expect((createReq as unknown as Record<string, unknown>).slug).toBeUndefined();
     });
 
-    it('prohibits immutable fields and slug from restaurant update payload', () => {
+    it('prohibits immutable fields from restaurant update payload, but permits optional slug update', () => {
       const updateReq = mapToUpdateRestaurantRequest({
-        id: 'forbidden-id-123',
+        id: 1,
         raw_name: 'Updated Branch Name',
+        slug: 'ruh-01-updated',
         timezone: 'Asia/Riyadh',
         created_at: '2026-01-01',
       });
 
       expect(updateReq.name).toBe('Updated Branch Name');
+      expect(updateReq.slug).toBe('ruh-01-updated');
       expect((updateReq as unknown as Record<string, unknown>).id).toBeUndefined();
       expect((updateReq as unknown as Record<string, unknown>).created_at).toBeUndefined();
     });
 
     it('prohibits route-scoped restaurant_id and database ID from employee creation payload', () => {
       const createEmpReq = mapToCreateEmployeeRequest({
-        id: 'forbidden-emp-id',
-        restaurant_id: 'rest-1',
+        id: 501,
+        restaurant_id: 1,
         first_name: { ar: 'سامي', en: 'Sami' },
         last_name: { ar: 'النجار', en: 'Al-Najjar' },
         raw_first_name: 'Sami',
@@ -162,8 +165,8 @@ describe('API Response Envelope & Request Payload Tests', () => {
 
     it('prohibits tenant modification in employee update payload', () => {
       const updateEmpReq = mapToUpdateEmployeeRequest({
-        id: 'emp-101',
-        restaurant_id: 'rest-2', // Attempting to change tenant ownership
+        id: 101,
+        restaurant_id: 2, // Attempting to change tenant ownership
         raw_first_name: 'Ahmed Updated',
       });
 

@@ -8,7 +8,9 @@ import type { UserAccountStatus } from '../backend/user';
 import type { LocalizedString, StatusBadgeVariant } from './restaurant.presentation';
 
 export interface UserPresentationModel {
-  id: string;
+  id: number;
+  string_id: string;
+  legacy_id?: string;
   email: string;
   name_first: string;
   name_last: string;
@@ -22,12 +24,13 @@ export interface UserPresentationModel {
   };
   email_verified: boolean;
   last_login_at: string | null;
-  default_restaurant_id: string | null;
-  assigned_restaurant_ids: string[];
+  default_restaurant_id: number | null;
+  assigned_restaurant_ids: number[];
   primary_role: string | null;
   role_badge: {
     label: LocalizedString;
   } | null;
-  permission_names: string[];
+  permission_codes: string[];
+  permission_names: string[]; // alias
   created_at: string;
 }

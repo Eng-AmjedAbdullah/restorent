@@ -2,7 +2,7 @@
  * Restaurant Presentation Model
  *
  * Tailored for Vue 3 templates, RTL/LTR localization, and status badging.
- * Decoupled from wire-level Laravel DTOs.
+ * Wire-level numeric ID is preserved alongside presentation string key.
  */
 
 import type { RestaurantStatus } from '../backend/restaurant';
@@ -15,7 +15,9 @@ export interface LocalizedString {
 }
 
 export interface RestaurantPresentationModel {
-  id: string;
+  id: number;
+  string_id: string;
+  legacy_id?: string;
   name: LocalizedString;
   raw_name: string;
   slug: string;

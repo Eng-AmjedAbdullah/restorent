@@ -18,18 +18,20 @@ export interface LoginRequest {
   password: string;
 }
 
+export type LoginCredentialsRequest = LoginRequest;
+
 /**
- * Login Success Data Payload
+ * Login Success Data Payload (inside ApiSuccessResponse.data)
  */
 export interface LoginResponseData {
   token: string;
+  token_type?: string;
   user: UserDto;
   restaurant?: RestaurantDto | null;
 }
 
 /**
  * Auth Me Response Data (GET /api/auth/me)
+ * The Laravel API returns the authenticated UserDto directly inside the envelope `data` field.
  */
-export interface AuthMeResponseData {
-  user: UserDto;
-}
+export type AuthMeResponseData = UserDto;

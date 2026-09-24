@@ -9,17 +9,18 @@ import type { UserPresentationModel } from '../presentation/user.presentation';
 import type { LocalizedString } from '../presentation/restaurant.presentation';
 import type { MapperOptions } from './restaurant.mapper';
 import {
-  MOCK_LOCALIZATION_CATALOG,
+  MOCK_USER_LOCALIZATION,
   USER_STATUS_LABELS,
 } from './localizationCatalog';
 
 const ROLE_LABELS: Record<string, LocalizedString> = {
+  'System Super Administrator': { ar: 'مدير عام المنظومة', en: 'System Super Administrator' },
+  'Restaurant Operations Director': { ar: 'مديرة العمليات والتشغيل', en: 'Restaurant Operations Director' },
+  'Branch General Manager': { ar: 'مدير الفرع العام', en: 'Branch General Manager' },
+  'Kitchen & Floor Staff': { ar: 'فريق المطبخ والخدمة', en: 'Kitchen & Floor Staff' },
   super_admin: { ar: 'مدير عام المنظومة', en: 'Super Administrator' },
   operations_director: { ar: 'مديرة العمليات والتشغيل', en: 'Operations Director' },
   general_manager: { ar: 'مدير الفرع العام', en: 'General Manager' },
-  shift_supervisor: { ar: 'مشرف وردية', en: 'Shift Supervisor' },
-  chef: { ar: 'رئيس الطهاة', en: 'Head Chef' },
-  inventory_manager: { ar: 'مسؤول المستودع والجرد', en: 'Inventory Manager' },
 };
 
 /**
@@ -29,16 +30,18 @@ export function mapUserToPresentation(
   dto: UserDto,
   options: MapperOptions = { useMockCatalog: true }
 ): UserPresentationModel {
+  const strId = String(dto.id);
+  const legacyKey = `usr-${dto.id}`;
   const catalogEntry = options.useMockCatalog !== false
-    ? MOCK_LOCALIZATION_CATALOG[dto.id]
+    ? (MOCK_USER_LOCALIZATION[dto.id] || MOCK_USER_LOCALIZATION[legacyKey])
     : undefined;
 
-  const firstName = catalogEntry?.first_name || {
+  const firstName: LocalizedString = catalogEntry?.first_name || {
     ar: dto.name_first,
     en: dto.name_first,
   };
 
-  const lastName = catalogEntry?.last_name || {
+  const lastName: LocalizedString = catalogEntry?.last_name || {
     ar: dto.name_last,
     en: dto.name_last,
   };
@@ -53,23 +56,27 @@ export function mapUserToPresentation(
     variant: 'default' as const,
   };
 
-  // Find default restaurant or first assigned restaurant membership
-  const defaultMembership = dto.memberships?.find((m) => m.is_default);
-  const defaultRestaurantId = defaultMembership?.restaurant_id || dto.memberships?.[0]?.restaurant_id || null;
+  const defaultRestaurantId = dto.memberships?.[0]?.restaurant_id || null;
   const assignedRestaurantIds = dto.memberships?.map((m) => m.restaurant_id) || [];
 
-  // Determine primary role
-  const primaryRole = dto.roles?.[0]?.name || defaultMembership?.role || null;
+  // Determine primary role from loaded roles or membership role assignments
+  const primaryRole = dto.roles?.[0]?.name
+    || dto.memberships?.[0]?.role_assignments?.[0]?.role?.name
+    || null;
+
   const roleBadge = primaryRole
     ? {
         label: ROLE_LABELS[primaryRole] || { ar: primaryRole, en: primaryRole },
       }
     : null;
 
+  const permissionCodes = dto.permissions?.map((p) => p.code) || [];
   const permissionNames = dto.permissions?.map((p) => p.name) || [];
 
   return {
     id: dto.id,
+    string_id: strId,
+    legacy_id: legacyKey,
     email: dto.email,
     name_first: dto.name_first,
     name_last: dto.name_last,
@@ -84,6 +91,7 @@ export function mapUserToPresentation(
     assigned_restaurant_ids: assignedRestaurantIds,
     primary_role: primaryRole,
     role_badge: roleBadge,
+    permission_codes: permissionCodes,
     permission_names: permissionNames,
     created_at: dto.created_at,
   };

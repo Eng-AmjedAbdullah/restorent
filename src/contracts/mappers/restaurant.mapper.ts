@@ -15,7 +15,7 @@ import type {
   LocalizedString,
 } from '../presentation/restaurant.presentation';
 import {
-  MOCK_LOCALIZATION_CATALOG,
+  MOCK_RESTAURANT_LOCALIZATION,
   RESTAURANT_STATUS_LABELS,
 } from './localizationCatalog';
 
@@ -35,8 +35,10 @@ export function mapRestaurantToPresentation(
   dto: RestaurantDto,
   options: MapperOptions = { useMockCatalog: true }
 ): RestaurantPresentationModel {
+  const strId = String(dto.id);
+  const legacyKey = `rest-${dto.id}`;
   const catalogEntry = options.useMockCatalog !== false
-    ? MOCK_LOCALIZATION_CATALOG[dto.id]
+    ? (MOCK_RESTAURANT_LOCALIZATION[dto.id] || MOCK_RESTAURANT_LOCALIZATION[legacyKey])
     : undefined;
 
   const name: LocalizedString = catalogEntry?.name || {
@@ -60,10 +62,12 @@ export function mapRestaurantToPresentation(
   // Derive a compact branch code (e.g. "RUH-01" from slug or uppercase substring)
   const code = dto.slug
     ? dto.slug.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 10)
-    : dto.id.toUpperCase();
+    : `REST-${dto.id}`;
 
   return {
     id: dto.id,
+    string_id: strId,
+    legacy_id: legacyKey,
     name,
     raw_name: dto.name,
     slug: dto.slug,
@@ -83,13 +87,14 @@ export function mapRestaurantToPresentation(
 
 /**
  * Maps a Presentation Model (or form input) to CreateRestaurantRequest
- * Enforces removal of prohibited backend fields (id, slug, timestamps).
+ * Enforces removal of prohibited backend fields (id, timestamps).
+ * Slug is optional in creation.
  */
 export function mapToCreateRestaurantRequest(
   presentation: Partial<RestaurantPresentationModel> & { raw_name?: string }
 ): CreateRestaurantRequest {
   const name = presentation.raw_name || presentation.name?.en || presentation.name?.ar || '';
-  return {
+  const payload: CreateRestaurantRequest = {
     name,
     currency_code: presentation.currency_code || presentation.currency || 'SAR',
     timezone: presentation.timezone || 'Asia/Riyadh',
@@ -97,33 +102,43 @@ export function mapToCreateRestaurantRequest(
     address: presentation.address?.en || presentation.address?.ar || null,
     status: presentation.status || 'active',
   };
+  if (presentation.slug) {
+    payload.slug = presentation.slug;
+  }
+  return payload;
 }
 
 /**
- * Maps a Presentation Model to UpdateRestaurantRequest
- * Enforces removal of prohibited backend fields.
+ * Maps a Presentation Model (or form input) to UpdateRestaurantRequest
+ * Enforces removal of immutable database fields.
+ * Slug is optional in updates.
  */
 export function mapToUpdateRestaurantRequest(
-  presentation: Partial<RestaurantPresentationModel>
+  presentation: Partial<RestaurantPresentationModel> & { raw_name?: string }
 ): UpdateRestaurantRequest {
-  const req: UpdateRestaurantRequest = {};
-  if (presentation.raw_name || presentation.name) {
-    req.name = presentation.raw_name || presentation.name?.en || presentation.name?.ar;
+  const payload: UpdateRestaurantRequest = {};
+
+  if (presentation.raw_name !== undefined || presentation.name !== undefined) {
+    payload.name = presentation.raw_name || presentation.name?.en || presentation.name?.ar;
   }
-  if (presentation.currency_code || presentation.currency) {
-    req.currency_code = presentation.currency_code || presentation.currency;
+  if (presentation.slug !== undefined) {
+    payload.slug = presentation.slug;
   }
-  if (presentation.timezone) {
-    req.timezone = presentation.timezone;
+  if (presentation.currency_code !== undefined || presentation.currency !== undefined) {
+    payload.currency_code = presentation.currency_code || presentation.currency;
+  }
+  if (presentation.timezone !== undefined) {
+    payload.timezone = presentation.timezone;
   }
   if (presentation.city !== undefined) {
-    req.city = presentation.city ? (presentation.city.en || presentation.city.ar) : null;
+    payload.city = presentation.city ? (presentation.city.en || presentation.city.ar) : null;
   }
   if (presentation.address !== undefined) {
-    req.address = presentation.address ? (presentation.address.en || presentation.address.ar) : null;
+    payload.address = presentation.address ? (presentation.address.en || presentation.address.ar) : null;
   }
-  if (presentation.status) {
-    req.status = presentation.status;
+  if (presentation.status !== undefined) {
+    payload.status = presentation.status;
   }
-  return req;
+
+  return payload;
 }

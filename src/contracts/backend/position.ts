@@ -2,13 +2,18 @@
  * Canonical Laravel Position DTO
  *
  * Minimal confirmed structure for employee workforce roles/positions.
+ * Positions are strictly scoped to a specific restaurant tenant.
  */
 
+export type PositionStatus = 'active' | 'inactive';
+
 export interface PositionDto {
-  id: string;
-  restaurant_id: string | null;
+  id: number;
+  restaurant_id: number;
   name: string;
-  department: string | null;
+  code: string | null;
+  status: PositionStatus;
+  department?: string | null;
   created_at?: string;
   updated_at?: string;
 }

@@ -68,3 +68,21 @@
   scrollbar-color: #335272 rgba(11, 19, 26, 0.7);
 }
 
+
+
+/* Print-ready reports: browser Print / Save as PDF, without application navigation. */
+@page { size: A4; margin: 12mm; }
+@media print {
+  html, body { background: #fff !important; color: #111827 !important; height: auto !important; }
+  .app-print-hidden, .print\:hidden { display: none !important; }
+  .app-print-layout { display: block !important; background: #fff !important; min-height: 0 !important; }
+  .app-print-content { display: block !important; margin: 0 !important; padding: 0 !important; }
+  .app-print-layout main { display: block !important; margin: 0 !important; padding: 0 !important; max-width: none !important; width: 100% !important; }
+  .report-print-sheet { width: 100% !important; color: #111827 !important; }
+  .report-print-sheet header { break-after: avoid; }
+  .report-print-sheet section, .report-print-sheet table, .report-print-sheet tr { break-inside: avoid; }
+  .report-print-sheet .overflow-x-auto { overflow: visible !important; }
+  .report-print-sheet table { width: 100% !important; }
+  .report-print-sheet button, .report-print-sheet select { display: none !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

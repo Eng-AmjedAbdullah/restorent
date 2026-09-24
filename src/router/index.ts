@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { useAuthStore } from '@/stores/auth';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -102,10 +103,12 @@ const router = createRouter({
   }
 });
 
-// Navigation guard placeholder for future Laravel Sanctum token check
-router.beforeEach((to, _from, next) => {
-  // Can inspect auth token or pinia auth store here
-  next();
+// Explicit MOCK session guard: real Laravel authorization will be server-side.
+router.beforeEach(async (to) => {
+  const auth = useAuthStore();
+  await auth.init();
+  if (to.path === '/login') return auth.isAuthenticated ? '/dashboard' : true;
+  if (to.meta.requiresAuth && !auth.isAuthenticated) return { path: '/login', query: { redirect: to.fullPath } };
+  return true;
 });
-
 export default router;

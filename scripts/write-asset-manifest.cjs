@@ -1,0 +1,15 @@
+/** Regenerate the accurate retained-asset manifest after intentional asset cleanup. */
+const fs=require('node:fs');
+const path=require('node:path');
+const crypto=require('node:crypto');
+const root=path.resolve(__dirname,'..');
+const pub=path.join(root,'public');
+const code=fs.readFileSync(path.join(root,'index.html'),'utf8')+fs.readdirSync(path.join(root,'src','pages')).filter(f=>f.endsWith('.vue')).map(f=>fs.readFileSync(path.join(root,'src','pages',f),'utf8')).join('\n')+fs.readdirSync(path.join(root,'src','components','layout')).filter(f=>f.endsWith('.vue')).map(f=>fs.readFileSync(path.join(root,'src','components','layout',f),'utf8')).join('\n');
+const files=[];
+function visit(d){for(const e of fs.readdirSync(d,{withFileTypes:true})){const full=path.join(d,e.name);if(e.isDirectory())visit(full);else if(/\.(png|webp|svg|ico)$/i.test(e.name))files.push(full);}}
+visit(pub);files.sort();
+const originalSource=new Set(['/iconwithoutback.png','/logowithoutback.png']);
+const output=['# RestoraIntel — retained image inventory','','Generated from the Vue-only release candidate. All retained images are referenced by the active Vue code or index.html. Old, unused images were removed from the production source and archived in a separate backup ZIP.','','| Public URL | Bytes | SHA-256 prefix | Usage |','| --- | ---: | --- | --- |'];
+for(const file of files){const url='/'+path.relative(pub,file).split(path.sep).join('/');if(!code.includes(url))throw new Error(`Retained file has no known Vue/HTML reference: ${url}`);const bytes=fs.readFileSync(file),hash=crypto.createHash('sha256').update(bytes).digest('hex').slice(0,12);const usage=originalSource.has(url)?'Original transparent master used in the source-assets gallery':url.includes('favicon')||url.includes('icon-')||url.includes('apple-touch')?'Browser/PWA icon; displayed in gallery or linked in HTML':'Used brand asset in actual app or branding gallery';output.push(`| \`${url}\` | ${bytes.length.toLocaleString('en-US')} | \`${hash}\` | ${usage} |`);}
+output.push('','## Intentional visual preservation','','The authentic RestoraIntel mark, wordmark and circuitry were not redesigned or recolored. Browser/PWA PNG canvases are padded to the exact standard square sizes (16×16, 32×32, 180×180, 192×192, 512×512) without stretching the underlying art. The favicon.ico asset is preserved.','','The removed-image backup holds 27 files from the original upload, including original root logo masters. It is delivered **separately** from the production source ZIP so the clean app does not ship duplicate gigabyte-scale source assets. The original uploaded ZIP and prior repaired ZIP remain the separate recoverable reference for legacy TSX source.','','Optional icon-canvas recipe: `scripts/normalize-brand-icons.cjs` requires the Sharp package if rerun; the exported icons are already normalized and do not require Sharp to run the app.');
+fs.writeFileSync(path.join(root,'docs','ASSET_MANIFEST.md'),output.join('\n')+'\n');console.log(`Wrote asset manifest for ${files.length} used images`);

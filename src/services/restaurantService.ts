@@ -1,28 +1,28 @@
 import type { Restaurant } from '@/types/domain';
-import { mockRestaurants } from '@/mocks/restaurants';
-
-// In-memory cloned cache to simulate stateful mutations during the demo session
-let restaurantsState: Restaurant[] = JSON.parse(JSON.stringify(mockRestaurants));
+import { getDataProvider } from '@/data/providers';
+import { toLegacyRestaurant, wireId } from '@/data/adapters/legacy-view';
 
 export const restaurantService = {
   async getRestaurants(): Promise<Restaurant[]> {
-    // Simulated network delay
-    return JSON.parse(JSON.stringify(restaurantsState));
+    const res = await getDataProvider().listRestaurants();
+    return res.data.map(toLegacyRestaurant);
   },
-
   async getRestaurantById(id: string): Promise<Restaurant | null> {
-    const found = restaurantsState.find(r => r.id === id);
-    return found ? JSON.parse(JSON.stringify(found)) : null;
+    try { return toLegacyRestaurant((await getDataProvider().getRestaurant(wireId(id, 'rest'))).data); }
+    catch (err) { if (err instanceof Error && err.name === 'NotFoundError') return null; throw err; }
   },
-
-  async updateRestaurant(id: string, data: Partial<Restaurant>): Promise<Restaurant> {
-    const index = restaurantsState.findIndex(r => r.id === id);
-    if (index === -1) throw new Error(`Restaurant with ID ${id} not found`);
-    restaurantsState[index] = {
-      ...restaurantsState[index],
-      ...data,
-      updated_at: new Date().toISOString()
+  async updateRestaurant(id: string, updates: Partial<Restaurant>): Promise<Restaurant> {
+    const current = (await getDataProvider().getRestaurant(wireId(id, 'rest'))).data;
+    const payload = {
+      ...(updates.name ? { name: updates.name.en || updates.name.ar } : {}),
+      ...(updates.currency ? { currency_code: updates.currency } : {}),
+      ...(updates.timezone ? { timezone: updates.timezone } : {}),
+      ...(updates.status ? { status: updates.status === 'active' ? 'active' as const : 'inactive' as const } : {}),
+      ...(updates.city ? { city: updates.city.en || updates.city.ar } : {}),
+      ...(updates.address ? { address: updates.address.en || updates.address.ar } : {}),
     };
-    return JSON.parse(JSON.stringify(restaurantsState[index]));
-  }
+    // Existing UI-only fields are not silently written to the canonical Laravel record.
+    if (current.deleted_at) throw new Error('Cannot update a deleted restaurant.');
+    return toLegacyRestaurant((await getDataProvider().updateRestaurant(current.id, payload)).data);
+  },
 };

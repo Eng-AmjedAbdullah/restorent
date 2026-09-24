@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUIStore } from '@/stores/ui';
 import { useAuthStore } from '@/stores/auth';
-// import RestaurantSwitcher from '@/components/ui/RestaurantSwitcher.vue';
+import RestaurantSwitcher from '@/components/ui/RestaurantSwitcher.vue';
 import {
   Menu,
   Globe,
@@ -19,6 +19,19 @@ const uiStore = useUIStore();
 const authStore = useAuthStore();
 
 const searchQuery = ref('');
+const searchRoutes = [
+  { keywords: 'dashboard الرئيسية', path: '/dashboard' }, { keywords: 'employees الموظفين', path: '/employees' },
+  { keywords: 'attendance الحضور', path: '/attendance' }, { keywords: 'leave الإجازات', path: '/leave-requests' },
+  { keywords: 'orders الطلبات المطبخ', path: '/orders' }, { keywords: 'inventory المخزون', path: '/inventory' },
+  { keywords: 'menu القائمة', path: '/menu' }, { keywords: 'reports التقارير', path: '/reports' },
+  { keywords: 'alerts التنبيهات', path: '/alerts' }, { keywords: 'schedule الجدولة', path: '/scheduling' },
+];
+function submitSearch() {
+  const q = searchQuery.value.trim().toLowerCase();
+  if (!q) return;
+  const found = searchRoutes.find(r => r.keywords.includes(q));
+  if (found) { router.push(found.path); searchQuery.value = ''; }
+}
 const userDropdownOpen = ref(false);
 const dropdownRef = ref<HTMLElement | null>(null);
 
@@ -30,10 +43,10 @@ function openAlerts() {
   router.push('/alerts');
 }
 
-function handleLogout() {
+async function handleLogout() {
   userDropdownOpen.value = false;
-  authStore.logout();
-  router.push('/login');
+  await authStore.logout();
+  await router.replace('/login');
 }
 
 function handleClickOutside(event: MouseEvent) {
@@ -72,13 +85,17 @@ onUnmounted(() => {
         <Search class="absolute start-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
         <input
           v-model="searchQuery"
-          type="text"
+          type="search"
+          @keydown.enter.prevent="submitSearch"
           :placeholder="$t('common.search')"
           class="w-full bg-[#12202f] border border-[#1e344d] hover:border-slate-600 focus:border-[#4edee3] focus:ring-2 focus:ring-[#4edee3]/20 rounded-xl py-2 ps-10 pe-10 text-xs text-white placeholder-slate-400 transition-all outline-none"
         />
-        <kbd class="absolute end-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-800/80 rounded border border-slate-700">⌘K</kbd>
+        <kbd class="absolute end-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-800/80 rounded border border-slate-700">↵</kbd>
       </div>
     </div>
+
+    <!-- Active tenant: the same selector used by mobile navigation. -->
+    <RestaurantSwitcher class="hidden lg:block max-w-[230px]" />
 
     <!-- Right: Controls & User Profile -->
     <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">

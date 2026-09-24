@@ -115,7 +115,7 @@ export interface Employee {
   position?: Position;
   hire_date: string;
   contract_type: 'full_time' | 'part_time' | 'seasonal' | 'contractor';
-  status: 'active' | 'on_shift' | 'on_break' | 'off_duty' | 'on_leave';
+  status: 'active' | 'inactive' | 'terminated' | 'suspended' | 'on_shift' | 'on_break' | 'off_duty' | 'on_leave';
   avatar_url: string;
   skills: string[];
   leave_balance: {

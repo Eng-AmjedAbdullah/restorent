@@ -1,29 +1,12 @@
 import type { Order } from '@/types/domain';
-import { mockOrders } from '@/mocks/orders';
-
-let ordersState: Order[] = JSON.parse(JSON.stringify(mockOrders));
-
+import { getMockOperations } from '@/data/providers';
+import { wireId } from '@/data/adapters/legacy-view';
 export const orderService = {
-  async getOrders(restaurantId: string): Promise<Order[]> {
-    const list = ordersState.filter(o => o.restaurant_id === restaurantId);
-    return JSON.parse(JSON.stringify(list));
+  async getOrders(id: string): Promise<Order[]> { return getMockOperations().mockGetOrders(wireId(id, 'rest')); },
+  async updateOrderStatus(restaurantId: string, id: string, status: Order['status']): Promise<Order> {
+    return getMockOperations().mockUpdateOrderStatus(wireId(restaurantId, 'rest'), id, status);
   },
-
-  async updateOrderStatus(orderId: string, status: Order['status']): Promise<Order> {
-    const index = ordersState.findIndex(o => o.id === orderId);
-    if (index === -1) throw new Error(`Order ${orderId} not found`);
-    ordersState[index].status = status;
-    ordersState[index].updated_at = new Date().toISOString();
-    return JSON.parse(JSON.stringify(ordersState[index]));
+  async toggleItemPrepared(restaurantId: string, orderId: string, itemId: string): Promise<Order> {
+    return getMockOperations().mockToggleOrderItem(wireId(restaurantId, 'rest'), orderId, itemId);
   },
-
-  async toggleItemPrepared(orderId: string, itemId: string): Promise<Order> {
-    const order = ordersState.find(o => o.id === orderId);
-    if (!order) throw new Error(`Order ${orderId} not found`);
-    const item = order.items.find(i => i.id === itemId);
-    if (item) {
-      item.is_prepared = !item.is_prepared;
-    }
-    return JSON.parse(JSON.stringify(order));
-  }
 };

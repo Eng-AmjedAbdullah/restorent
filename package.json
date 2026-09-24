@@ -10,18 +10,17 @@
     "clean": "rm -rf dist server.js",
     "typecheck": "vue-tsc --noEmit",
     "lint": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test",
+    "verify:source": "node scripts/verify-source.cjs",
+    "verify:offline": "node scripts/verify-source.cjs && node scripts/verify-assets.cjs && node scripts/verify-provider.cjs && node scripts/verify-bun-tests-node.cjs",
+    "verify:core": "tsc -p scripts/tsconfig.core-check.json --pretty false",
+    "verify:assets": "node scripts/verify-assets.cjs"
   },
   "dependencies": {
-    "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-vue": "^6.0.9",
     "axios": "^1.20.0",
-    "dotenv": "^17.2.3",
-    "express": "^4.21.2",
-    "lucide-react": "^0.546.0",
     "lucide-vue-next": "^1.0.0",
-    "motion": "^12.23.24",
     "pinia": "^4.0.3",
     "vite": "^8.3.0",
     "vue": "^3.5.43",
@@ -29,14 +28,8 @@
     "vue-router": "^5.3.1"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
-    "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
-    "autoprefixer": "^10.4.21",
-    "esbuild": "^0.25.0",
     "tailwindcss": "^4.3.3",
-    "tsx": "^4.21.0",
     "typescript": "6.0.2",
     "vue-tsc": "^3.3.11"
   }

@@ -1,15 +1,38 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useUIStore } from '@/stores/ui';
+import { useAuthStore } from '@/stores/auth';
 import { inventoryService } from '@/services/inventoryService';
 import type { InventoryItem } from '@/types/domain';
 import { Boxes, AlertTriangle, ArrowUpDown, Package } from 'lucide-vue-next';
 
 const uiStore = useUIStore();
+const authStore = useAuthStore();
 const inventoryItems = ref<InventoryItem[]>([]);
+const isLoading = ref<boolean>(true);
 
-onMounted(async () => {
-  inventoryItems.value = await inventoryService.getInventoryItems();
+async function loadInventory() {
+  const restaurantId = authStore.currentRestaurant?.id;
+  if (!restaurantId) {
+    inventoryItems.value = [];
+    isLoading.value = false;
+    return;
+  }
+
+  isLoading.value = true;
+  try {
+    inventoryItems.value = await inventoryService.getInventoryItems(restaurantId);
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+onMounted(() => {
+  loadInventory();
+});
+
+watch(() => authStore.currentRestaurant?.id, () => {
+  loadInventory();
 });
 </script>
 
@@ -29,7 +52,15 @@ onMounted(async () => {
     </div>
 
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div v-if="isLoading" class="p-8 text-center text-xs text-slate-500">
+        {{ uiStore.language === 'ar' ? 'جاري تحميل عناصر المخزون...' : 'Loading inventory items...' }}
+      </div>
+
+      <div v-else-if="inventoryItems.length === 0" class="p-8 text-center text-xs text-slate-500">
+        {{ uiStore.language === 'ar' ? 'لا توجد عناصر مخزون مسجلة لهذا الفرع حالياً' : 'No inventory items recorded for this branch' }}
+      </div>
+
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div
           v-for="item in inventoryItems.slice(0, 4)"
           :key="item.id"
@@ -39,7 +70,7 @@ onMounted(async () => {
             <span class="text-slate-500 font-mono">{{ item.sku }}</span>
             <span
               :class="[
-                'px-2 py-0.5 rounded text-[10px] font-bold',
+                'px-2 py-0.5 rounded text-[10px] font-bold uppercase',
                 item.status === 'critical' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
               ]"
             >

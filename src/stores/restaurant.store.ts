@@ -9,8 +9,8 @@ export const useRestaurantStore = defineStore('restaurant', () => {
   const isLoading = ref<boolean>(false);
 
   // Computed
-  const activeRestaurantId = computed(() => currentRestaurant.value?.id || 'rest-1');
-  const activeBranchName = computed(() => currentRestaurant.value?.name || { ar: 'فرع الرياض الرئيسي', en: 'Riyadh Flagship' });
+  const activeRestaurantId = computed(() => currentRestaurant.value?.id || '');
+  const activeBranchName = computed(() => currentRestaurant.value?.name || null);
   const activeCurrency = computed(() => currentRestaurant.value?.currency || 'SAR');
 
   async function fetchRestaurants(): Promise<Restaurant[]> {

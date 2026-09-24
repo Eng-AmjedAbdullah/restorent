@@ -1,20 +1,38 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useUIStore } from '@/stores/ui';
+import { useAuthStore } from '@/stores/auth';
 import { attendanceService } from '@/services/attendanceService';
 import type { Attendance } from '@/types/domain';
-import { Clock, CheckCircle2, AlertCircle, ShieldCheck } from 'lucide-vue-next';
+import { Clock, CheckCircle2, ShieldCheck, AlertCircle } from 'lucide-vue-next';
 
 const uiStore = useUIStore();
+const authStore = useAuthStore();
 const attendanceList = ref<Attendance[]>([]);
 const isLoading = ref(true);
 
-onMounted(async () => {
+async function loadAttendance() {
+  const restaurantId = authStore.currentRestaurant?.id;
+  if (!restaurantId) {
+    attendanceList.value = [];
+    isLoading.value = false;
+    return;
+  }
+
+  isLoading.value = true;
   try {
-    attendanceList.value = await attendanceService.getAttendanceRecords();
+    attendanceList.value = await attendanceService.getAttendances(restaurantId);
   } finally {
     isLoading.value = false;
   }
+}
+
+onMounted(() => {
+  loadAttendance();
+});
+
+watch(() => authStore.currentRestaurant?.id, () => {
+  loadAttendance();
 });
 </script>
 
@@ -58,7 +76,15 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="divide-y divide-slate-100">
+      <div v-if="isLoading" class="p-8 text-center text-xs text-slate-500">
+        {{ uiStore.language === 'ar' ? 'جاري تحميل سجلات الحضور...' : 'Loading attendance records...' }}
+      </div>
+
+      <div v-else-if="attendanceList.length === 0" class="p-8 text-center text-xs text-slate-500">
+        {{ uiStore.language === 'ar' ? 'لا توجد سجلات حضور مسجلة لهذا الفرع اليوم' : 'No attendance records found for this branch today' }}
+      </div>
+
+      <div v-else class="divide-y divide-slate-100">
         <div
           v-for="rec in attendanceList.slice(0, 5)"
           :key="rec.id"
@@ -66,8 +92,10 @@ onMounted(async () => {
         >
           <div class="flex items-center gap-3">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-            <span class="font-bold text-slate-800">{{ rec.employee?.first_name[uiStore.language] }} {{ rec.employee?.last_name[uiStore.language] }}</span>
-            <span class="text-slate-400 font-mono text-[11px]">{{ rec.employee?.employee_code }}</span>
+            <span class="font-bold text-slate-800">
+              {{ rec.employee?.first_name?.[uiStore.language] || rec.employee_id }} {{ rec.employee?.last_name?.[uiStore.language] || '' }}
+            </span>
+            <span class="text-slate-400 font-mono text-[11px]">{{ rec.employee?.employee_code || rec.employee_id }}</span>
           </div>
           <div class="flex items-center gap-4 text-slate-600">
             <span>{{ rec.scheduled_start }} - {{ rec.scheduled_end }}</span>

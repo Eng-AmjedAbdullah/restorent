@@ -46,7 +46,8 @@ const orderColumns: Column<Order>[] = [
 ];
 
 async function loadData() {
-  const restId = authStore.currentRestaurant?.id || 'rest-1';
+  const restId = authStore.currentRestaurant?.id;
+  if (!restId) return;
   await dashboardStore.fetchDashboardData(restId);
 }
 

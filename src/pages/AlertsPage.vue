@@ -1,26 +1,52 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useUIStore } from '@/stores/ui';
 import { useAuthStore } from '@/stores/auth';
-import { mockAlerts } from '@/mocks/aiInsights';
+import { aiInsightService } from '@/services/aiInsightService';
+import type { OperationalAlert } from '@/types/domain';
 import { Bell, AlertTriangle, AlertCircle, CheckCircle2, Clock } from 'lucide-vue-next';
 
 const uiStore = useUIStore();
 const authStore = useAuthStore();
 
-const alerts = ref(mockAlerts);
+const alerts = ref<OperationalAlert[]>([]);
+const isLoading = ref<boolean>(true);
 
-const currentAlerts = computed(() => {
-  const currentRestId = authStore.currentRestaurant?.id || 'rest-1';
-  return alerts.value.filter(a => a.restaurant_id === currentRestId);
-});
+async function loadAlerts() {
+  const currentRestId = authStore.currentRestaurant?.id;
+  if (!currentRestId) {
+    alerts.value = [];
+    isLoading.value = false;
+    return;
+  }
 
-function markAsRead(id: string) {
-  const alert = alerts.value.find(a => a.id === id);
-  if (alert) {
-    alert.read = true;
+  isLoading.value = true;
+  try {
+    alerts.value = await aiInsightService.getAlerts(currentRestId);
+  } finally {
+    isLoading.value = false;
   }
 }
+
+async function markAsRead(id: string) {
+  try {
+    const updated = await aiInsightService.markAlertRead(id);
+    const index = alerts.value.findIndex(a => a.id === id);
+    if (index !== -1) {
+      alerts.value[index] = updated;
+    }
+  } catch (error) {
+    console.error('Failed to mark alert as read:', error);
+  }
+}
+
+onMounted(() => {
+  loadAlerts();
+});
+
+watch(() => authStore.currentRestaurant?.id, () => {
+  loadAlerts();
+});
 </script>
 
 <template>
@@ -39,14 +65,18 @@ function markAsRead(id: string) {
 
       <div class="flex items-center gap-2">
         <span class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 shadow-2xs">
-          {{ currentAlerts.length }} {{ uiStore.language === 'ar' ? 'تنبيه مسجل' : 'Logged Alerts' }}
+          {{ alerts.length }} {{ uiStore.language === 'ar' ? 'تنبيه مسجل' : 'Logged Alerts' }}
         </span>
       </div>
     </div>
 
-    <div v-if="currentAlerts.length > 0" class="space-y-3">
+    <div v-if="isLoading" class="p-8 text-center text-xs text-slate-500 bg-white rounded-2xl border border-slate-200">
+      {{ uiStore.language === 'ar' ? 'جاري تحميل التنبيهات التشغيلية...' : 'Loading operational alerts...' }}
+    </div>
+
+    <div v-else-if="alerts.length > 0" class="space-y-3">
       <div
-        v-for="alert in currentAlerts"
+        v-for="alert in alerts"
         :key="alert.id"
         :class="[
           'bg-white rounded-2xl border p-4 sm:p-5 shadow-2xs transition-all flex items-start gap-4',

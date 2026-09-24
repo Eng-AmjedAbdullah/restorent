@@ -1,15 +1,38 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useUIStore } from '@/stores/ui';
+import { useAuthStore } from '@/stores/auth';
 import { schedulingService } from '@/services/schedulingService';
 import type { Shift } from '@/types/domain';
 import { CalendarDays, Plus, Clock, Users } from 'lucide-vue-next';
 
 const uiStore = useUIStore();
+const authStore = useAuthStore();
 const shifts = ref<Shift[]>([]);
+const isLoading = ref<boolean>(true);
 
-onMounted(async () => {
-  shifts.value = await schedulingService.getShifts();
+async function loadShifts() {
+  const restaurantId = authStore.currentRestaurant?.id;
+  if (!restaurantId) {
+    shifts.value = [];
+    isLoading.value = false;
+    return;
+  }
+
+  isLoading.value = true;
+  try {
+    shifts.value = await schedulingService.getShifts(restaurantId);
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+onMounted(() => {
+  loadShifts();
+});
+
+watch(() => authStore.currentRestaurant?.id, () => {
+  loadShifts();
 });
 </script>
 
@@ -34,7 +57,15 @@ onMounted(async () => {
         <span>{{ uiStore.language === 'ar' ? 'الورديات المجدولة حالياً:' : 'Current Scheduled Shifts:' }}</span>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div v-if="isLoading" class="p-8 text-center text-xs text-slate-500">
+        {{ uiStore.language === 'ar' ? 'جاري تحميل جدول الورديات...' : 'Loading shift schedules...' }}
+      </div>
+
+      <div v-else-if="shifts.length === 0" class="p-8 text-center text-xs text-slate-500">
+        {{ uiStore.language === 'ar' ? 'لا توجد ورديات مجدولة لهذا الفرع حالياً' : 'No scheduled shifts found for this branch' }}
+      </div>
+
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div
           v-for="shift in shifts.slice(0, 6)"
           :key="shift.id"

@@ -1,13 +1,19 @@
 import type { Attendance, LeaveRequest } from '@/types/domain';
 import { mockAttendances, mockLeaveRequests } from '@/mocks/attendance';
+import { mockEmployees } from '@/mocks/employees';
 
 let attendanceState: Attendance[] = JSON.parse(JSON.stringify(mockAttendances));
 let leaveRequestsState: LeaveRequest[] = JSON.parse(JSON.stringify(mockLeaveRequests));
 
 export const attendanceService = {
   async getAttendances(restaurantId: string): Promise<Attendance[]> {
+    if (!restaurantId) return [];
     const list = attendanceState.filter(a => a.restaurant_id === restaurantId);
-    return JSON.parse(JSON.stringify(list));
+    const enriched = list.map(item => {
+      const emp = item.employee || mockEmployees.find(e => e.id === item.employee_id);
+      return { ...item, employee: emp };
+    });
+    return JSON.parse(JSON.stringify(enriched));
   },
 
   async recordClockIn(employeeId: string, restaurantId: string): Promise<Attendance> {

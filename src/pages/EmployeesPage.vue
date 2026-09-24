@@ -1,14 +1,29 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 import { useEmployeeStore } from '@/stores/employee';
+import { useAuthStore } from '@/stores/auth';
 import { useUIStore } from '@/stores/ui';
 import { Users, UserPlus, Search, Filter } from 'lucide-vue-next';
 
 const employeeStore = useEmployeeStore();
+const authStore = useAuthStore();
 const uiStore = useUIStore();
 
-onMounted(async () => {
-  await employeeStore.fetchEmployees();
+async function loadEmployees() {
+  const restaurantId = authStore.currentRestaurant?.id;
+  if (!restaurantId) {
+    employeeStore.employees = [];
+    return;
+  }
+  await employeeStore.fetchEmployees(restaurantId);
+}
+
+onMounted(() => {
+  loadEmployees();
+});
+
+watch(() => authStore.currentRestaurant?.id, () => {
+  loadEmployees();
 });
 </script>
 
@@ -56,7 +71,15 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
+      <div v-if="employeeStore.isLoading" class="p-8 text-center text-xs text-slate-500">
+        {{ uiStore.language === 'ar' ? 'جاري تحميل بيانات الموظفين...' : 'Loading staff members...' }}
+      </div>
+
+      <div v-else-if="employeeStore.filteredEmployees.length === 0" class="p-8 text-center text-xs text-slate-500">
+        {{ uiStore.language === 'ar' ? 'لا يوجد موظفون مسجلون لهذا الفرع' : 'No staff members found for this branch' }}
+      </div>
+
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
         <div
           v-for="emp in employeeStore.filteredEmployees.slice(0, 6)"
           :key="emp.id"

@@ -1,15 +1,38 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useUIStore } from '@/stores/ui';
+import { useAuthStore } from '@/stores/auth';
 import { reportService } from '@/services/reportService';
 import type { ReportMetric } from '@/types/domain';
 import { BarChart3, TrendingUp, DollarSign, Calendar } from 'lucide-vue-next';
 
 const uiStore = useUIStore();
+const authStore = useAuthStore();
 const metrics = ref<ReportMetric[]>([]);
+const isLoading = ref<boolean>(true);
 
-onMounted(async () => {
-  metrics.value = await reportService.getReportMetrics('rest-1');
+async function loadReports() {
+  const restaurantId = authStore.currentRestaurant?.id;
+  if (!restaurantId) {
+    metrics.value = [];
+    isLoading.value = false;
+    return;
+  }
+
+  isLoading.value = true;
+  try {
+    metrics.value = await reportService.getReportMetrics(restaurantId);
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+onMounted(() => {
+  loadReports();
+});
+
+watch(() => authStore.currentRestaurant?.id, () => {
+  loadReports();
 });
 </script>
 
@@ -29,7 +52,15 @@ onMounted(async () => {
     </div>
 
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-      <div class="overflow-x-auto">
+      <div v-if="isLoading" class="p-8 text-center text-xs text-slate-500">
+        {{ uiStore.language === 'ar' ? 'جاري تحميل التقارير المالية...' : 'Loading financial reports...' }}
+      </div>
+
+      <div v-else-if="metrics.length === 0" class="p-8 text-center text-xs text-slate-500">
+        {{ uiStore.language === 'ar' ? 'لا توجد بيانات تقارير مسجلة لهذا الفرع' : 'No report metrics available for this branch' }}
+      </div>
+
+      <div v-else class="overflow-x-auto">
         <table class="w-full text-xs text-start">
           <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
             <tr>

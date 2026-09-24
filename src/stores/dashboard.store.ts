@@ -62,7 +62,20 @@ export const useDashboardStore = defineStore('dashboard', () => {
     return leaveRequests.value.filter(l => l.status === 'pending').length;
   });
 
-  async function fetchDashboardData(restaurantId: string = 'rest-1'): Promise<void> {
+  async function fetchDashboardData(restaurantId: string): Promise<void> {
+    if (!restaurantId) {
+      summary.value = null;
+      metrics.value = [];
+      kpis.value = null;
+      employees.value = [];
+      attendance.value = [];
+      leaveRequests.value = [];
+      inventory.value = [];
+      orders.value = [];
+      insights.value = [];
+      alerts.value = [];
+      return;
+    }
     isLoading.value = true;
     try {
       const [

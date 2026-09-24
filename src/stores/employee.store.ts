@@ -2,136 +2,77 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { Employee, Position } from '@/types/domain';
 import { employeeService } from '@/services/employeeService';
+import { useAuthStore } from './auth.store';
 
 export const useEmployeeStore = defineStore('employee', () => {
+  const auth = useAuthStore();
   const employees = ref<Employee[]>([]);
   const positions = ref<Position[]>([]);
   const selectedEmployee = ref<Employee | null>(null);
-  const isLoading = ref<boolean>(false);
+  const isLoading = ref(false);
+  const error = ref<string | null>(null);
+  const searchQuery = ref('');
+  const departmentFilter = ref('all');
+  const statusFilter = ref('all');
+  let requestGeneration = 0;
 
-  // Filters
-  const searchQuery = ref<string>('');
-  const departmentFilter = ref<string>('all');
-  const statusFilter = ref<string>('all');
-
-  // Computed
-  const filteredEmployees = computed(() => {
-    return employees.value.filter(emp => {
-      const q = searchQuery.value.toLowerCase().trim();
-      const matchesSearch =
-        !q ||
-        emp.first_name.ar.toLowerCase().includes(q) ||
-        emp.first_name.en.toLowerCase().includes(q) ||
-        emp.last_name.ar.toLowerCase().includes(q) ||
-        emp.last_name.en.toLowerCase().includes(q) ||
-        emp.employee_code.toLowerCase().includes(q);
-
-      const matchesDept =
-        departmentFilter.value === 'all' ||
-        emp.position?.department === departmentFilter.value;
-
-      const matchesStatus =
-        statusFilter.value === 'all' ||
-        emp.status === statusFilter.value;
-
-      return matchesSearch && matchesDept && matchesStatus;
-    });
-  });
-
+  const filteredEmployees = computed(() => employees.value.filter(emp => {
+    const q = searchQuery.value.toLocaleLowerCase().trim();
+    const searchText = [emp.first_name.ar, emp.first_name.en, emp.last_name.ar, emp.last_name.en, emp.employee_code, emp.email].join(' ').toLocaleLowerCase();
+    return (!q || searchText.includes(q)) && (departmentFilter.value === 'all' || emp.position?.department === departmentFilter.value) &&
+      (statusFilter.value === 'all' || emp.status === statusFilter.value);
+  }));
   const onDutyCount = computed(() => employees.value.filter(e => e.status === 'on_shift').length);
   const onLeaveCount = computed(() => employees.value.filter(e => e.status === 'on_leave').length);
   const totalEmployeesCount = computed(() => employees.value.length);
-
   async function fetchEmployees(restaurantId?: string): Promise<Employee[]> {
+    const generation = ++requestGeneration;
+    employees.value = []; positions.value = []; selectedEmployee.value = null; error.value = null;
+    if (!restaurantId) { isLoading.value = false; return []; }
     isLoading.value = true;
     try {
-      const [empList, posList] = await Promise.all([
-        employeeService.getEmployees(restaurantId),
-        employeeService.getPositions()
-      ]);
-      employees.value = empList;
-      positions.value = posList;
-      return empList;
-    } catch (error) {
-      console.error('[EmployeeStore] Failed to fetch employees:', error);
+      const [list, pos] = await Promise.all([employeeService.getEmployees(restaurantId), employeeService.getPositions(restaurantId)]);
+      if (generation === requestGeneration && auth.currentRestaurant?.id === restaurantId) { employees.value = list; positions.value = pos; }
+      return list;
+    } catch (err) {
+      if (generation === requestGeneration) error.value = err instanceof Error ? err.message : 'Unable to fetch employees.';
       return [];
-    } finally {
-      isLoading.value = false;
-    }
+    } finally { if (generation === requestGeneration) isLoading.value = false; }
   }
-
-  function selectEmployee(emp: Employee | null): void {
-    selectedEmployee.value = emp;
-  }
-
+  function selectEmployee(employee: Employee | null): void { selectedEmployee.value = employee; }
   async function addEmployee(data: Partial<Employee>): Promise<Employee | null> {
+    error.value = null;
+    const id = auth.currentRestaurant?.id;
+    if (!id || !data.first_name?.en?.trim() || !data.last_name?.en?.trim()) {
+      error.value = 'Select a restaurant and provide first and last names.'; return null;
+    }
     isLoading.value = true;
     try {
-      const defaultData: Omit<Employee, 'id' | 'created_at' | 'updated_at'> = {
-        employee_code: `EMP-${Math.floor(1000 + Math.random() * 9000)}`,
-        first_name: data.first_name || { ar: 'موظف', en: 'Staff' },
-        last_name: data.last_name || { ar: 'جديد', en: 'New' },
-        email: data.email || 'staff@restoraintel.com',
-        phone: data.phone || '+966 50 000 0000',
-        position_id: data.position_id || positions.value[0]?.id || 'pos-line-cook',
-        position: data.position || positions.value[0],
-        hire_date: data.hire_date || new Date().toISOString().split('T')[0],
-        contract_type: data.contract_type || 'full_time',
-        status: data.status || 'active',
-        avatar_url: data.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
-        skills: data.skills || ['خدمة عملاء', 'Customer Service'],
-        leave_balance: data.leave_balance || { annual_days: 21, sick_days: 15, emergency_days: 5 },
-        performance_score: data.performance_score || 90,
-        hourly_rate: data.hourly_rate || 35,
-        emergency_contact: data.emergency_contact || { name: 'ولي الأمر', relationship: 'عائلي', phone: '+966 50 000 0000' }
-      };
-
-      const created = await employeeService.createEmployee(defaultData);
-      employees.value.unshift(created);
-      return created;
-    } catch (error) {
-      console.error('[EmployeeStore] Failed to add employee:', error);
-      return null;
-    } finally {
-      isLoading.value = false;
-    }
+      const created = await employeeService.createEmployee({
+        restaurant_id: id, first_name: data.first_name, last_name: data.last_name,
+        employee_code: data.employee_code ?? '', email: data.email ?? '', phone: data.phone ?? '',
+        position_id: data.position_id ?? '', position: data.position, hire_date: data.hire_date ?? '',
+        contract_type: data.contract_type ?? 'full_time', status: data.status ?? 'active',
+        avatar_url: '', skills: [], leave_balance: { annual_days: 0, sick_days: 0, emergency_days: 0 },
+        performance_score: 0, hourly_rate: 0, emergency_contact: { name: '', relationship: '', phone: '' },
+      });
+      employees.value.unshift(created); return created;
+    } catch (err) { error.value = err instanceof Error ? err.message : 'Unable to create employee.'; return null; }
+    finally { isLoading.value = false; }
   }
-
   async function updateEmployee(id: string, updates: Partial<Employee>): Promise<Employee | null> {
+    error.value = null; const restId = auth.currentRestaurant?.id;
+    if (!restId) { error.value = 'Select a restaurant.'; return null; }
     isLoading.value = true;
     try {
-      const updated = await employeeService.updateEmployee(id, updates);
-      const index = employees.value.findIndex(e => e.id === id);
-      if (index !== -1) {
-        employees.value[index] = updated;
-      }
-      if (selectedEmployee.value?.id === id) {
-        selectedEmployee.value = updated;
-      }
+      const updated = await employeeService.updateEmployee(restId, id, updates);
+      const idx = employees.value.findIndex(e => e.id === id);
+      if (idx !== -1) employees.value[idx] = updated;
+      if (selectedEmployee.value?.id === id) selectedEmployee.value = updated;
       return updated;
-    } catch (error) {
-      console.error('[EmployeeStore] Failed to update employee:', error);
-      return null;
-    } finally {
-      isLoading.value = false;
-    }
+    } catch (err) { error.value = err instanceof Error ? err.message : 'Unable to update employee.'; return null; }
+    finally { isLoading.value = false; }
   }
-
-  return {
-    employees,
-    positions,
-    selectedEmployee,
-    isLoading,
-    searchQuery,
-    departmentFilter,
-    statusFilter,
-    filteredEmployees,
-    onDutyCount,
-    onLeaveCount,
-    totalEmployeesCount,
-    fetchEmployees,
-    selectEmployee,
-    addEmployee,
-    updateEmployee
-  };
+  return { employees, positions, selectedEmployee, isLoading, error, searchQuery, departmentFilter, statusFilter,
+    filteredEmployees, onDutyCount, onLeaveCount, totalEmployeesCount, fetchEmployees, selectEmployee, addEmployee, updateEmployee };
 });

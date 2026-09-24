@@ -18,21 +18,24 @@ import {
 const uiStore = useUIStore();
 const activeFilter = ref<'all' | 'production' | 'source' | 'icons'>('all');
 const copiedPath = ref<string | null>(null);
+const previewBackground = ref<'dark' | 'light' | 'checker'>('dark');
+const sidebarTheme = ref<'dark' | 'light'>('dark');
+const headerTheme = ref<'dark' | 'light'>('dark');
+const sidebarCollapsed = ref(false);
+const previewNarrow = ref(false);
+const backgroundOptions: Array<'dark' | 'light' | 'checker'> = ['dark', 'light', 'checker'];
+const themeOptions: Array<'dark' | 'light'> = ['dark', 'light'];
 
-function copyToClipboard(text: string) {
-  navigator.clipboard.writeText(text);
-  copiedPath.value = text;
-  uiStore.addToast({
-    title: uiStore.language === 'ar' ? 'تم نسخ المسار' : 'Asset Path Copied',
-    message: text,
-    type: 'success',
-    duration: 2500
-  });
-  setTimeout(() => {
-    if (copiedPath.value === text) {
-      copiedPath.value = null;
-    }
-  }, 2000);
+async function copyToClipboard(text: string) {
+  try {
+    if (!navigator.clipboard?.writeText) throw new Error('Clipboard access requires a secure origin.');
+    await navigator.clipboard.writeText(text);
+    copiedPath.value = text;
+    uiStore.addToast({ title: uiStore.language === 'ar' ? 'تم نسخ المسار' : 'Asset path copied', message: text, type: 'success', duration: 2500 });
+    setTimeout(() => { if (copiedPath.value === text) copiedPath.value = null; }, 2000);
+  } catch {
+    uiStore.addToast({ title: uiStore.language === 'ar' ? 'تعذر النسخ: حدد النص يدويًا' : 'Cannot access clipboard; select the text manually', message: text, type: 'error', duration: 3500 });
+  }
 }
 
 interface BrandAsset {
@@ -316,6 +319,60 @@ function filteredAssets() {
         </div>
       </div>
     </div>
+
+    <!-- Interactive parity with the retired React brand preview. Preview controls do not modify production theme. -->
+    <section class="space-y-4 rounded-3xl bg-white border border-slate-200 p-4 sm:p-6 shadow-sm" aria-label="RestoraIntel interactive brand simulator">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div><h2 class="text-lg font-bold text-slate-900 flex items-center gap-2"><Eye class="w-5 h-5 text-teal-700" />{{ uiStore.language === 'ar' ? 'معاينة الهوية التفاعلية' : 'Interactive brand simulator' }}</h2>
+          <p class="text-xs text-slate-500 mt-1">{{ uiStore.language === 'ar' ? 'بدّل الخلفية والمظهر وحجم القائمة دون تغيير تصميم المنصة الفعلي.' : 'Preview backgrounds, shell themes and sidebar sizes without modifying your actual app theme.' }}</p></div>
+        <span class="text-[11px] font-semibold px-3 py-1.5 rounded-full border border-teal-200 bg-teal-50 text-teal-800">{{ uiStore.language === 'ar' ? 'معاينة محلية فقط' : 'Preview only' }}</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-2" role="group" :aria-label="uiStore.language === 'ar' ? 'اختيار خلفية الشعار' : 'Logo background'">
+        <button v-for="option in backgroundOptions" :key="option" type="button" :aria-pressed="previewBackground === option"
+          class="rounded-xl px-3 py-2 text-xs font-semibold border transition-colors" :class="previewBackground === option ? 'bg-teal-700 border-teal-700 text-white' : 'border-slate-200 text-slate-700 hover:bg-slate-50'"
+          @click="previewBackground = option">{{ option === 'dark' ? (uiStore.language === 'ar' ? 'داكن' : 'Dark') : option === 'light' ? (uiStore.language === 'ar' ? 'فاتح' : 'Light') : (uiStore.language === 'ar' ? 'شفافية' : 'Checkerboard') }}</button>
+      </div>
+      <div class="rounded-2xl border border-slate-200 min-h-52 flex flex-col items-center justify-center gap-3 p-6 transition-colors"
+        :class="previewBackground === 'dark' ? 'bg-[#0b131a] text-white' : previewBackground === 'light' ? 'bg-white text-slate-900' : ''"
+        :style="previewBackground === 'checker' ? { backgroundColor: '#fff', backgroundImage: 'linear-gradient(45deg,#e2e8f0 25%,transparent 25%),linear-gradient(-45deg,#e2e8f0 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e2e8f0 75%),linear-gradient(-45deg,transparent 75%,#e2e8f0 75%)', backgroundSize: '24px 24px', backgroundPosition: '0 0,0 12px,12px -12px,-12px 0' } : {}">
+        <img src="/branding/logo-without-bg-trimmed.webp" alt="Unmodified RestoraIntel brand lockup" class="w-full max-w-xs max-h-44 object-contain" />
+        <span class="text-xs font-medium" :class="previewBackground === 'dark' ? 'text-slate-300' : 'text-slate-600'">{{ uiStore.language === 'ar' ? 'الأصل الأصلي بدون تغيير ألوانه أو تفاصيله' : 'Original artwork, unchanged colors and fine details' }}</span>
+      </div>
+      <div class="grid lg:grid-cols-2 gap-5">
+        <div class="space-y-3 min-w-0">
+          <div class="flex flex-wrap justify-between items-center gap-2"><h3 class="font-bold text-sm text-slate-800 flex items-center gap-1.5"><Layers class="w-4 h-4 text-teal-700" />{{ uiStore.language === 'ar' ? 'محاكاة القائمة الجانبية' : 'Sidebar simulation' }}</h3>
+            <div class="flex gap-1"><button v-for="theme in themeOptions" :key="theme" type="button" :aria-pressed="sidebarTheme === theme" class="text-xs rounded-lg border px-2 py-1.5" :class="sidebarTheme === theme ? 'bg-teal-700 text-white border-teal-700' : 'bg-white text-slate-700 border-slate-200'" @click="sidebarTheme = theme">{{ theme === 'dark' ? (uiStore.language === 'ar' ? 'داكن' : 'Dark') : (uiStore.language === 'ar' ? 'فاتح' : 'Light') }}</button></div>
+          </div>
+          <button type="button" class="text-xs underline text-teal-800 font-semibold" :aria-pressed="sidebarCollapsed" @click="sidebarCollapsed = !sidebarCollapsed">{{ sidebarCollapsed ? (uiStore.language === 'ar' ? 'توسيع القائمة' : 'Expand sidebar') : (uiStore.language === 'ar' ? 'طي القائمة' : 'Collapse sidebar') }}</button>
+          <div class="rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 min-h-60 flex">
+            <div class="h-64 flex flex-col gap-3 p-3 transition-all duration-200 shrink-0" :class="[sidebarCollapsed ? 'w-[76px]' : 'w-[230px]', sidebarTheme === 'dark' ? 'bg-[#0b131a] text-white' : 'bg-white text-slate-900 border-e border-slate-200']">
+              <div class="flex items-center gap-2 border-b pb-3" :class="sidebarTheme === 'dark' ? 'border-slate-800' : 'border-slate-200'">
+                <img src="/branding/logo-compact-mark-dark.webp" alt="RestoraIntel mark" class="w-10 h-10 object-contain shrink-0" />
+                <span v-if="!sidebarCollapsed" class="font-black tracking-tight text-sm truncate" dir="ltr">Restora<span class="text-[#2c777c]">Intel</span></span>
+              </div>
+              <div v-for="(label, idx) in (uiStore.language === 'ar' ? ['لوحة التحكم','الموظفون','المخزون'] : ['Dashboard','Employees','Inventory'])" :key="label" class="rounded-xl py-2.5 flex items-center gap-2 text-xs font-semibold" :class="idx === 0 ? 'bg-[#2c777c]/20 text-[#15969c] border border-[#2c777c]/25' : sidebarTheme === 'dark' ? 'text-slate-400' : 'text-slate-600'">
+                <span class="w-8 text-center font-bold shrink-0">{{ ['01','02','03'][idx] }}</span><span v-if="!sidebarCollapsed" class="truncate">{{ label }}</span>
+              </div>
+            </div><div class="flex-1 p-3 text-xs text-slate-400">{{ uiStore.language === 'ar' ? 'المحتوى' : 'Content area' }}</div>
+          </div>
+        </div>
+        <div class="space-y-3 min-w-0">
+          <div class="flex flex-wrap justify-between items-center gap-2"><h3 class="font-bold text-sm text-slate-800 flex items-center gap-1.5"><Type class="w-4 h-4 text-teal-700" />{{ uiStore.language === 'ar' ? 'محاكاة الشريط العلوي' : 'Header simulation' }}</h3>
+            <div class="flex gap-1"><button v-for="theme in themeOptions" :key="theme" type="button" :aria-pressed="headerTheme === theme" class="text-xs rounded-lg border px-2 py-1.5" :class="headerTheme === theme ? 'bg-teal-700 text-white border-teal-700' : 'bg-white text-slate-700 border-slate-200'" @click="headerTheme = theme">{{ theme === 'dark' ? (uiStore.language === 'ar' ? 'داكن' : 'Dark') : (uiStore.language === 'ar' ? 'فاتح' : 'Light') }}</button></div>
+          </div>
+          <button type="button" class="text-xs underline text-teal-800 font-semibold" :aria-pressed="previewNarrow" @click="previewNarrow = !previewNarrow">{{ previewNarrow ? (uiStore.language === 'ar' ? 'عرض الكمبيوتر' : 'Desktop width') : (uiStore.language === 'ar' ? 'عرض الجوال' : 'Mobile width') }}</button>
+          <div class="min-h-60 rounded-2xl border border-slate-200 bg-slate-50 p-3 overflow-x-auto flex items-start justify-center">
+            <div class="rounded-xl border shadow-sm flex items-center gap-2 px-3 py-2 h-[65px] transition-all duration-200" :class="[previewNarrow ? 'w-[290px]' : 'w-full', headerTheme === 'dark' ? 'bg-[#0b131a] border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900']">
+              <img src="/branding/logo-compact-mark-dark.webp" alt="RestoraIntel mark" class="h-9 w-9 object-contain shrink-0" />
+              <span v-if="!previewNarrow" dir="ltr" class="font-black text-sm min-w-0 truncate">Restora<span class="text-[#2c777c]">Intel</span></span>
+              <span class="ms-auto shrink-0 px-2 py-1 rounded-lg text-[10px] font-bold bg-[#2c777c]/20 text-[#15969c]">RUH-01</span>
+              <span class="rounded-full w-8 h-8 flex justify-center items-center font-black text-xs border" :class="headerTheme === 'dark' ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-slate-100'">SA</span>
+            </div>
+          </div>
+          <p class="text-[11px] leading-relaxed text-slate-500">{{ uiStore.language === 'ar' ? 'هذه محاكاة للشكل فقط، وليست نسخة ثانية من مكوّنات القائمة الحقيقية.' : 'Visual simulation only; the real Vue sidebar and header remain the single production components.' }}</p>
+        </div>
+      </div>
+    </section>
 
     <!-- Color Palette Section -->
     <div class="space-y-4">

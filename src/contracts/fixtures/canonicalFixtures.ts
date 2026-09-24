@@ -25,6 +25,12 @@ import type {
 // 1. CANONICAL PERMISSIONS
 // ==========================================
 export const canonicalPermissions: PermissionDto[] = [
+  ...([
+    'restaurant.attendance.manage', 'restaurant.leave.manage', 'restaurant.shifts.manage',
+    'restaurant.menu.manage', 'restaurant.orders.manage', 'restaurant.inventory.manage',
+    'restaurant.alerts.view', 'restaurant.ai.forecasting.use'
+  ].map((code, i) => ({ id: i + 6, code, name: code, description: 'Mock persona capability; confirmed code in backend seeder.' }))),
+
   {
     id: 1,
     code: 'system.restaurants.manage',
@@ -87,7 +93,7 @@ export const canonicalRoles: RoleDto[] = [
     description: 'Branch manager with employee, profile, and reporting permissions',
     is_default: true,
     permissions: canonicalPermissions.filter((p) =>
-      ['restaurant.profile.manage_self', 'restaurant.employees.manage', 'restaurant.reports.view'].includes(p.code)
+      ['restaurant.profile.manage_self', 'restaurant.employees.manage', 'restaurant.reports.view', 'restaurant.attendance.manage', 'restaurant.leave.manage', 'restaurant.shifts.manage', 'restaurant.menu.manage', 'restaurant.orders.manage', 'restaurant.inventory.manage', 'restaurant.alerts.view', 'restaurant.ai.forecasting.use'].includes(p.code)
     ),
   },
   {

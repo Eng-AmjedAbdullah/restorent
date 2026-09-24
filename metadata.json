@@ -1,8 +1,6 @@
 {
   "name": "RestoraIntel",
-  "description": "AI-powered Restaurant Operations Management Platform for enterprise restaurant chains with bilingual Arabic/English RTL support.",
+  "description": "Mock-first bilingual Vue 3 restaurant operations dashboard; real Laravel, AI, and hardware integrations are not connected.",
   "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
+  "majorCapabilities": []
 }

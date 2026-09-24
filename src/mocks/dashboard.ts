@@ -1,5 +1,4 @@
-import type { DashboardSummary } from '@/types/domain';
-import { mockDashboardSummaries, mockReportMetrics } from './reports';
+// Non-financial demo attributes are deliberately a labeled snapshot, never real telemetry.
 
 export interface DashboardKPIs {
   revenueGrowth: number;
@@ -29,27 +28,3 @@ export const mockDashboardKPIs: Record<string, DashboardKPIs> = {
   }
 };
 
-export const getDashboardSummaryByRestaurant = (restaurantId: string): DashboardSummary => {
-  return (
-    mockDashboardSummaries[restaurantId] ||
-    mockDashboardSummaries['rest-1'] || {
-      sales_today: 45000,
-      sales_yesterday: 41000,
-      employees_on_duty: 4,
-      total_shift_staff: 5,
-      attendance_rate: 98,
-      late_count: 0,
-      critical_inventory_alerts: 0,
-      pending_leave_requests: 0,
-      active_orders_count: 2,
-      station_coverage: {
-        kitchen: 100,
-        floor: 100,
-        bar: 100,
-        stewarding: 100
-      }
-    }
-  );
-};
-
-export { mockDashboardSummaries, mockReportMetrics };

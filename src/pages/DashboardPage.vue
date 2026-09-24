@@ -38,12 +38,12 @@ const uiStore = useUIStore();
 const isArabic = computed(() => uiStore.language === 'ar');
 
 // Table columns definition for Today's Floor Operations / KDS Orders
-const orderColumns: Column<Order>[] = [
+const orderColumns = computed<Column<Order>[]>(() => [
   { key: 'order_number', header: isArabic.value ? 'رقم الطلب' : 'Order #', width: 'w-24' },
   { key: 'details', header: isArabic.value ? 'تفاصيل الطلب' : 'Order Details' },
   { key: 'status', header: isArabic.value ? 'الحالة' : 'Status', width: 'w-28', align: 'center' },
   { key: 'elapsed_minutes', header: isArabic.value ? 'الوقت' : 'Elapsed', width: 'w-20', align: 'end' }
-];
+]);
 
 async function loadData() {
   const restId = authStore.currentRestaurant?.id;
@@ -62,26 +62,28 @@ watch(
   }
 );
 
-function handleAcceptRecommendation(id: string) {
-  dashboardStore.acceptInsight(id);
-  uiStore.addToast({
-    title: isArabic.value ? 'تم الاعتماد' : 'Directive Accepted',
-    message: isArabic.value
-      ? 'تم اعتماد توصية RestoraAI وتحديث الجدول التشغيلي'
-      : 'Accepted RestoraAI directive & updated schedule',
-    type: 'success'
-  });
+async function handleAcceptRecommendation(id: string) {
+  if (!authStore.can('restaurant.ai.forecasting.use')) return;
+  try {
+    await dashboardStore.acceptInsight(id);
+    uiStore.addToast({ title: isArabic.value ? 'اعتماد تجريبي' : 'Demo recommendation accepted',
+      message: isArabic.value ? 'تم تسجيل القرار في البيانات التجريبية. لم تتغير الوردية أو يُنشر نموذج.' : 'The decision was recorded locally; no shift or AI model was deployed.', type: 'info' });
+  } catch (error) {
+    uiStore.addToast({ title: isArabic.value ? 'تعذر اعتماد التوصية' : 'Unable to accept recommendation',
+      message: error instanceof Error ? error.message : 'Action failed', type: 'error' });
+  }
 }
 
-function handleDismissRecommendation(id: string) {
-  dashboardStore.rejectInsight(id);
-  uiStore.addToast({
-    title: isArabic.value ? 'تم الاستبعاد' : 'Dismissed',
-    message: isArabic.value
-      ? `تم تجاهل توصية الذكاء الاصطناعي #${id}`
-      : `Dismissed recommendation #${id}`,
-    type: 'info'
-  });
+async function handleDismissRecommendation(id: string) {
+  if (!authStore.can('restaurant.ai.forecasting.use')) return;
+  try {
+    await dashboardStore.rejectInsight(id);
+    uiStore.addToast({ title: isArabic.value ? 'تم الرفض في المحاكاة' : 'Demo recommendation dismissed',
+      message: isArabic.value ? 'تغيرت حالة التوصية فقط.' : 'Only the recommendation status changed.', type: 'info' });
+  } catch (error) {
+    uiStore.addToast({ title: isArabic.value ? 'تعذر رفض التوصية' : 'Unable to dismiss recommendation',
+      message: error instanceof Error ? error.message : 'Action failed', type: 'error' });
+  }
 }
 
 function getOrderStatusLabel(status: Order['status']) {
@@ -104,13 +106,13 @@ function getOrderStatusLabel(status: Order['status']) {
             {{ isArabic ? 'لوحة القيادة التشغيلية' : 'Operations Dashboard' }}
           </h1>
           <Badge variant="cyan" size="sm" class="shrink-0">
-            {{ isArabic ? 'مراقبة فورية RestoraAI' : 'RestoraAI Real-Time' }}
+            {{ isArabic ? 'بيانات عرض تجريبية' : 'Sample data · Demo' }}
           </Badge>
         </div>
         <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
           {{ authStore.currentRestaurant?.name[uiStore.language] || (isArabic ? 'الفرع الرئيسي' : 'Flagship Branch') }}
           -
-          {{ isArabic ? 'متابعة شاملة لمؤشرات الأداء، تغطية الورديات وتوصيات الذكاء الاصطناعي التشغيلي' : 'Comprehensive performance KPIs, shift coverage and proactive operational AI insights' }}
+          {{ isArabic ? 'لوحة لبيانات تاريخية ومحاكاة محلية لعمليات المطاعم' : 'Historical sample dashboard and local restaurant workflow simulation' }}
         </p>
       </div>
 
@@ -130,7 +132,7 @@ function getOrderStatusLabel(status: Order['status']) {
           @click="router.push('/orders')"
         >
           <ShoppingBag class="w-4 h-4 me-1.5" />
-          <span>{{ isArabic ? 'الطلبات الحية' : 'Live Orders' }}</span>
+          <span>{{ isArabic ? 'الطلبات التجريبية' : 'Demo Orders' }}</span>
         </Button>
       </div>
     </div>
@@ -147,9 +149,10 @@ function getOrderStatusLabel(status: Order['status']) {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <!-- 1. Sales Today -->
         <StatCard
-          :title="isArabic ? 'مبيعات اليوم' : 'Today Sales'"
-          :value="dashboardStore.salesToday.toLocaleString() + ' ' + (isArabic ? 'ر.س' : 'SAR')"
-          :trend="'+14.8% ' + (isArabic ? 'مقارنة بالأمس' : 'vs yesterday')"
+          :title="isArabic ? 'مبيعات لقطة العينة' : 'Sample Snapshot Sales'"
+          :value="new Intl.NumberFormat(isArabic ? 'ar-SA' : 'en-US', { style: 'currency', currency: authStore.currentRestaurant?.currency || 'SAR' }).format(dashboardStore.salesToday)"
+          :subtitle="dashboardStore.sampleSalesDate ? (isArabic ? 'تاريخ العينة: ' : 'Sample date: ') + dashboardStore.sampleSalesDate : (isArabic ? 'لا توجد بيانات مبيعات' : 'No sales records')"
+          :trend="''"
           :trend-up="true"
           icon-bg="bg-[#16C7C9]/15 text-[#0A5C61]"
         >
@@ -170,7 +173,7 @@ function getOrderStatusLabel(status: Order['status']) {
           </template>
           <template #footer>
             <p class="text-[11px] text-slate-500 font-medium">
-              {{ isArabic ? 'في الوردية الحالية' : 'On Shift Now' }}
+              {{ isArabic ? 'بحسب سجلات العينة' : 'From sample attendance records' }}
             </p>
           </template>
         </StatCard>
@@ -203,7 +206,7 @@ function getOrderStatusLabel(status: Order['status']) {
               class="text-[11px] font-bold text-amber-800 hover:text-amber-950 underline cursor-pointer text-start block mt-1"
               @click="router.push('/inventory')"
             >
-              {{ isArabic ? 'عرض النواقص وإصدار طلب' : 'Inspect Stockouts' }}
+              {{ isArabic ? 'استعراض النواقص' : 'Inspect stockouts' }}
             </button>
           </template>
         </StatCard>
@@ -291,7 +294,7 @@ function getOrderStatusLabel(status: Order['status']) {
 
               <div class="p-3 rounded-xl bg-purple-100/60 border border-purple-200/80 text-xs">
                 <span class="font-bold text-purple-950 block mb-0.5">
-                  {{ isArabic ? 'الأثر المتوقع:' : 'Projected Impact:' }}
+                  {{ isArabic ? 'أثر تقديري من عينة المحاكاة:' : 'Illustrative impact (demo only):' }}
                 </span>
                 <p class="text-purple-800 text-[11px] leading-relaxed">
                   {{ rec.impact[uiStore.language] }}
@@ -316,14 +319,14 @@ function getOrderStatusLabel(status: Order['status']) {
                   variant="ghost"
                   size="sm"
                   class="text-xs text-slate-500 hover:text-slate-800"
-                  @click="handleDismissRecommendation(rec.id)"
+                  @click="handleDismissRecommendation(rec.id)" :disabled="!authStore.can('restaurant.ai.forecasting.use')"
                 >
                   {{ isArabic ? 'استبعاد' : 'Dismiss' }}
                 </Button>
                 <Button
                   variant="primary"
                   size="sm"
-                  @click="handleAcceptRecommendation(rec.id)"
+                  @click="handleAcceptRecommendation(rec.id)" :disabled="!authStore.can('restaurant.ai.forecasting.use')"
                 >
                   <Check class="w-3.5 h-3.5 me-1" />
                   <span>{{ isArabic ? 'اعتماد' : 'Accept' }}</span>
@@ -348,7 +351,7 @@ function getOrderStatusLabel(status: Order['status']) {
             <div class="p-5 flex items-center justify-between border-b border-slate-100">
               <div>
                 <h3 class="text-base font-bold text-slate-900 tracking-tight">
-                  {{ isArabic ? 'سير العمليات لليوم' : "Today's Operations" }}
+                  {{ isArabic ? 'سير عمليات العينة' : 'Sample Operations' }}
                 </h3>
                 <p class="text-xs text-slate-500 mt-0.5">
                   {{ dashboardStore.orders.length }} {{ isArabic ? 'طلبات نشطة' : 'Active Orders' }}
@@ -441,7 +444,7 @@ function getOrderStatusLabel(status: Order['status']) {
                   {{ isArabic ? 'تغطية طاقم العمل حسب المحطة' : 'Staffing Coverage by Station' }}
                 </h3>
                 <p class="text-xs text-slate-500 mt-0.5">
-                  {{ isArabic ? 'جاهزية محطات الفرع حسب جدول اليوم' : 'Station readiness against scheduled par' }}
+                  {{ isArabic ? 'تغطية المحطات في بيانات العينة' : 'Station coverage in sample data' }}
                 </p>
               </div>
               <Button
@@ -589,72 +592,23 @@ function getOrderStatusLabel(status: Order['status']) {
           </Card>
         </div>
 
-        <!-- Recent Activities Stream -->
+        <!-- Sample activity derived from the same provider; no fabricated timestamps or audit claims. -->
         <div class="lg:col-span-6">
           <Card padding="none">
-            <div class="p-5 flex items-center justify-between border-b border-slate-100">
-              <h3 class="text-base font-bold text-slate-900 tracking-tight">
-                {{ isArabic ? 'سجل العمليات الأخير' : 'Recent Operations Stream' }}
-              </h3>
-              <Badge variant="neutral" size="sm">
-                {{ isArabic ? 'سجل العمليات' : 'Audit Trail' }}
-              </Badge>
+            <div class="p-5 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100">
+              <h3 class="text-base font-bold text-slate-900">{{ isArabic ? 'حالات العمليات في العينة' : 'Sample operational status' }}</h3>
+              <Badge variant="neutral" size="sm">{{ isArabic ? 'محاكاة تاريخية' : 'Historical demo' }}</Badge>
             </div>
-
-            <div class="p-5 space-y-4">
-              <div class="flex items-start gap-3 text-xs">
-                <span class="w-2.5 h-2.5 rounded-full bg-[#4edee3] ring-4 ring-[#34abb1]/20 mt-1 shrink-0" />
-                <div class="flex-1">
-                  <p class="font-semibold text-slate-800">
-                    {{ isArabic
-                      ? 'اعتماد طلب إجازة طارئة للموظف سامي النجار'
-                      : 'Emergency leave approved for Sami Al-Najjar'
-                    }}
-                  </p>
-                  <p class="text-[11px] text-slate-400 mt-0.5">
-                    {{ isArabic
-                      ? 'قبل 15 دقيقة • بواسطة سلطان بن فهد الدوسري'
-                      : '15m ago • by Sultan Fahad Al-Dawsari'
-                    }}
-                  </p>
-                </div>
+            <div class="divide-y divide-slate-100 px-5">
+              <div v-for="request in dashboardStore.leaveRequests.slice(0, 3)" :key="request.id" class="flex items-center justify-between gap-3 py-3 text-xs">
+                <span class="text-slate-700">{{ isArabic ? 'طلب إجازة' : 'Leave request' }} · {{ request.employee?.first_name[uiStore.language] || request.employee_id }} · {{ request.start_date }}</span>
+                <span class="text-slate-500 font-semibold">{{ request.status }}</span>
               </div>
-
-              <div class="flex items-start gap-3 text-xs">
-                <span class="w-2.5 h-2.5 rounded-full bg-purple-500 ring-4 ring-purple-100 mt-1 shrink-0" />
-                <div class="flex-1">
-                  <p class="font-semibold text-slate-800">
-                    {{ isArabic
-                      ? 'نموذج RestoraAI قام بتحديث توقعات مبيعات نهاية الأسبوع (+18%)'
-                      : 'RestoraAI recalibrated weekend sales forecast (+18%)'
-                    }}
-                  </p>
-                  <p class="text-[11px] text-slate-400 mt-0.5">
-                    {{ isArabic
-                      ? 'قبل ساعة • خوارزمية التعلم الآلي'
-                      : '1h ago • Machine Learning Core'
-                    }}
-                  </p>
-                </div>
+              <div v-for="order in dashboardStore.orders.slice(0, 3)" :key="order.id" class="flex items-center justify-between gap-3 py-3 text-xs">
+                <span class="text-slate-700">{{ isArabic ? 'طلب مطعم' : 'Restaurant order' }} · {{ order.order_number }}</span>
+                <span class="text-slate-500 font-semibold">{{ order.status }}</span>
               </div>
-
-              <div class="flex items-start gap-3 text-xs">
-                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 ring-4 ring-amber-100 mt-1 shrink-0" />
-                <div class="flex-1">
-                  <p class="font-semibold text-slate-800">
-                    {{ isArabic
-                      ? 'إيقاف مؤقت (86) لطبق لحم حاشي محمر لنفاد المخزون اليومي'
-                      : "Camel meat dish 86'd across digital menus due to depletion"
-                    }}
-                  </p>
-                  <p class="text-[11px] text-slate-400 mt-0.5">
-                    {{ isArabic
-                      ? 'قبل ساعتين • رئيس الطهاة مبارك مسفر الدوسري'
-                      : '2h ago • Head Chef Mubarak Mesfer Al-Dawsari'
-                    }}
-                  </p>
-                </div>
-              </div>
+              <p v-if="!dashboardStore.leaveRequests.length && !dashboardStore.orders.length" class="text-xs text-slate-500 p-5">{{ isArabic ? 'لا توجد عمليات مسجلة في هذه العينة.' : 'No operational records in this sample.' }}</p>
             </div>
           </Card>
         </div>

@@ -17,6 +17,10 @@ declare module 'bun:test' {
     not: Matchers<T>;
     toMatch(regex: RegExp | string): void;
     toBeGreaterThan(expected: number): void;
+    toBeGreaterThanOrEqual(expected: number): void;
+    toBeInstanceOf(ctor: new (...args: any[]) => unknown): void;
+    toThrow(ctor?: new (...args: any[]) => unknown): void;
+    rejects: Matchers<Awaited<T>>;
     toBeLessThan(expected: number): void;
   }
 

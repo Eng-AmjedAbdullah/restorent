@@ -23,16 +23,16 @@ const contentMarginClass = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans transition-all duration-300">
+  <div class="app-print-layout min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans transition-all duration-300">
     <!-- Desktop Sidebar -->
-    <Sidebar class="hidden lg:flex" />
+    <Sidebar class="app-print-hidden hidden lg:flex" />
 
     <!-- Mobile Drawer -->
-    <MobileNavigation />
+    <div class="app-print-hidden"><MobileNavigation /></div>
 
     <!-- Main Content Wrapper -->
-    <div :class="['flex-1 flex flex-col transition-all duration-300', contentMarginClass]">
-      <Header />
+    <div :class="['app-print-content flex-1 flex flex-col transition-all duration-300', contentMarginClass]">
+      <Header class="app-print-hidden" />
 
       <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
         <router-view v-slot="{ Component }">
@@ -44,7 +44,7 @@ const contentMarginClass = computed(() => {
     </div>
 
     <!-- Global Toast Notifications -->
-    <ToastNotification />
+    <div class="app-print-hidden"><ToastNotification /></div>
   </div>
 </template>
 

@@ -1,147 +1,87 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
-import { useUIStore } from '@/stores/ui';
+import { computed, ref, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { useUIStore } from '@/stores/ui';
+import { useDashboardStore } from '@/stores/dashboard';
 import { aiInsightService } from '@/services/aiInsightService';
 import type { OperationalAlert } from '@/types/domain';
-import { Bell, AlertTriangle, AlertCircle, CheckCircle2, Clock } from 'lucide-vue-next';
+import { Bell, AlertTriangle, CheckCheck, CircleCheck } from 'lucide-vue-next';
 
-const uiStore = useUIStore();
-const authStore = useAuthStore();
-
+const auth = useAuthStore();
+const ui = useUIStore();
+const dashboard = useDashboardStore();
 const alerts = ref<OperationalAlert[]>([]);
-const isLoading = ref<boolean>(true);
-
-async function loadAlerts() {
-  const currentRestId = authStore.currentRestaurant?.id;
-  if (!currentRestId) {
-    alerts.value = [];
-    isLoading.value = false;
-    return;
-  }
-
-  isLoading.value = true;
+const loading = ref(false);
+const saving = ref(false);
+const error = ref('');
+const filter = ref<'all' | OperationalAlert['type'] | 'unread'>('all');
+const unread = computed(() => alerts.value.filter(a => !a.read).length);
+const visible = computed(() => alerts.value.filter(a => filter.value === 'all' || (filter.value === 'unread' ? !a.read : a.type === filter.value)));
+let generation = 0;
+async function load(): Promise<void> {
+  const id = auth.currentRestaurant?.id;
+  const current = ++generation;
+  alerts.value = [];
+  error.value = '';
+  if (!id) return;
+  loading.value = true;
   try {
-    alerts.value = await aiInsightService.getAlerts(currentRestId);
-  } finally {
-    isLoading.value = false;
-  }
+    const data = await aiInsightService.getAlerts(id);
+    if (current === generation) alerts.value = data;
+  } catch (e) { if (current === generation) error.value = e instanceof Error ? e.message : String(e); }
+  finally { if (current === generation) loading.value = false; }
 }
-
-async function markAsRead(id: string) {
+async function markRead(alertId: string): Promise<void> {
+  const restId = auth.currentRestaurant?.id;
+  if (!restId) return;
+  saving.value = true;
+  error.value = '';
   try {
-    const updated = await aiInsightService.markAlertRead(id);
-    const index = alerts.value.findIndex(a => a.id === id);
-    if (index !== -1) {
-      alerts.value[index] = updated;
-    }
-  } catch (error) {
-    console.error('Failed to mark alert as read:', error);
-  }
+    const data = await aiInsightService.markAlertRead(restId, alertId);
+    if (auth.currentRestaurant?.id !== restId) return;
+    alerts.value = alerts.value.map(a => a.id === data.id ? data : a);
+    if (dashboard.selectedRestaurantId === restId) await dashboard.markAlertAsRead(alertId);
+  } catch (e) { error.value = e instanceof Error ? e.message : String(e); }
+  finally { saving.value = false; }
 }
-
-onMounted(() => {
-  loadAlerts();
-});
-
-watch(() => authStore.currentRestaurant?.id, () => {
-  loadAlerts();
-});
+async function markAll(): Promise<void> {
+  const restId = auth.currentRestaurant?.id;
+  if (!restId || !unread.value) return;
+  saving.value = true;
+  error.value = '';
+  try {
+    await aiInsightService.markAllAlertsRead(restId);
+    if (auth.currentRestaurant?.id !== restId) return;
+    alerts.value = alerts.value.map(a => ({ ...a, read: true }));
+    if (dashboard.selectedRestaurantId === restId) await dashboard.fetchDashboardData(restId);
+  } catch (e) { error.value = e instanceof Error ? e.message : String(e); }
+  finally { saving.value = false; }
+}
+watch(() => auth.currentRestaurant?.id, load, { immediate: true });
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
-      <div>
-        <div class="flex items-center gap-2">
-          <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
-            {{ uiStore.language === 'ar' ? 'التنبيهات التشغيلية والحرجة' : 'Operational & System Alerts' }}
-          </h1>
+  <div class="space-y-5">
+    <header class="flex flex-wrap justify-between items-start gap-3 border-b border-slate-200 pb-4">
+      <div><h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2"><Bell class="w-6 h-6 text-teal-700"/>{{ ui.language === 'ar' ? 'التنبيهات التشغيلية' : 'Operational alerts' }}</h1>
+        <p class="text-sm text-slate-500 mt-1">{{ ui.language === 'ar' ? 'تنبيهات مستمدة من بيانات تجريبية؛ قراءة التنبيه لا تعني حل الحادثة.' : 'Historical demo alerts. Marking an alert as read does not resolve its underlying incident.' }}</p></div>
+      <button type="button" :disabled="saving || !unread" class="px-3 py-2 rounded-xl border border-teal-200 text-teal-800 text-xs font-semibold disabled:opacity-50 flex items-center gap-2" @click="markAll"><CheckCheck class="w-4 h-4"/>{{ ui.language === 'ar' ? 'تعيين الكل كمقروء' : 'Mark all as read' }} ({{ unread }})</button>
+    </header>
+    <p v-if="error" role="alert" class="p-3 rounded-xl bg-rose-50 text-rose-700 text-sm">{{ error }}</p>
+    <div class="flex flex-wrap gap-2" role="group" :aria-label="ui.language === 'ar' ? 'تصفية التنبيهات' : 'Filter alerts'">
+      <button v-for="type in (['all', 'unread', 'critical', 'operational', 'simulation_insight'] as const)" :key="type" type="button" :aria-pressed="filter === type" class="rounded-xl border px-3 py-2 text-xs font-semibold transition-colors" :class="filter === type ? 'bg-teal-700 text-white border-teal-700' : 'bg-white text-slate-700 border-slate-200 hover:border-teal-400'" @click="filter = type">{{ type === 'all' ? (ui.language === 'ar' ? 'الكل' : 'All') : type === 'unread' ? (ui.language === 'ar' ? 'غير المقروءة' : 'Unread') : type === 'critical' ? (ui.language === 'ar' ? 'حرجة' : 'Critical') : type === 'operational' ? (ui.language === 'ar' ? 'تشغيلية' : 'Operational') : (ui.language === 'ar' ? 'محاكاة التوصيات' : 'Simulated insights') }}</button>
+    </div>
+    <div v-if="loading" class="bg-white border border-slate-200 rounded-2xl p-10 text-center text-slate-500 text-sm">{{ ui.language === 'ar' ? 'جاري تحميل التنبيهات…' : 'Loading alerts…' }}</div>
+    <section v-else-if="visible.length" class="space-y-3">
+      <article v-for="alert in visible" :key="alert.id" class="bg-white rounded-2xl border p-4 sm:p-5 flex gap-3" :class="alert.read ? 'border-slate-200 opacity-75' : alert.type === 'critical' ? 'border-rose-200' : 'border-teal-200'">
+        <div class="p-2.5 h-fit rounded-xl" :class="alert.type === 'critical' ? 'bg-rose-50 text-rose-700' : 'bg-teal-50 text-teal-700'"><AlertTriangle v-if="alert.type === 'critical'" class="w-5 h-5"/><Bell v-else class="w-5 h-5"/></div>
+        <div class="flex-1 min-w-0"><div class="flex flex-wrap justify-between gap-2"><h2 class="font-bold text-slate-900 text-sm">{{ alert.title[ui.language] }}</h2><time class="font-mono text-xs text-slate-400">{{ new Date(alert.created_at).toLocaleString(ui.language === 'ar' ? 'ar-SA' : 'en-US', { timeZone: auth.currentRestaurant?.timezone || 'UTC', dateStyle: 'medium', timeStyle: 'short' }) }}</time></div>
+          <p class="mt-1 text-sm text-slate-600 leading-relaxed">{{ alert.message[ui.language] }}</p>
+          <div class="flex flex-wrap justify-between items-center mt-3 pt-3 border-t border-slate-100 gap-2"><span class="text-xs text-slate-500">{{ alert.urgency === 'high' ? (ui.language === 'ar' ? 'أولوية عالية' : 'High priority') : alert.urgency === 'medium' ? (ui.language === 'ar' ? 'أولوية متوسطة' : 'Medium priority') : (ui.language === 'ar' ? 'أولوية منخفضة' : 'Low priority') }}</span>
+            <button v-if="!alert.read" type="button" :disabled="saving" class="text-xs font-semibold text-teal-800 hover:underline disabled:opacity-50" @click="markRead(alert.id)">{{ ui.language === 'ar' ? 'تعيين كمقروء' : 'Mark as read' }}</button><span v-else class="inline-flex items-center gap-1 text-xs text-emerald-700"><CircleCheck class="w-4 h-4"/>{{ ui.language === 'ar' ? 'تمت القراءة' : 'Read' }}</span></div>
         </div>
-        <p class="text-sm text-slate-500 mt-1">
-          {{ uiStore.language === 'ar' ? 'تنبيهات المخزون الحرج، انخفاض التغطية، وتأخيرات الورديات' : 'Real-time operational alerts, stock depletion, and attendance deviations' }}
-        </p>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <span class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 shadow-2xs">
-          {{ alerts.length }} {{ uiStore.language === 'ar' ? 'تنبيه مسجل' : 'Logged Alerts' }}
-        </span>
-      </div>
-    </div>
-
-    <div v-if="isLoading" class="p-8 text-center text-xs text-slate-500 bg-white rounded-2xl border border-slate-200">
-      {{ uiStore.language === 'ar' ? 'جاري تحميل التنبيهات التشغيلية...' : 'Loading operational alerts...' }}
-    </div>
-
-    <div v-else-if="alerts.length > 0" class="space-y-3">
-      <div
-        v-for="alert in alerts"
-        :key="alert.id"
-        :class="[
-          'bg-white rounded-2xl border p-4 sm:p-5 shadow-2xs transition-all flex items-start gap-4',
-          alert.read ? 'border-slate-200 opacity-80' : 'border-slate-300 ring-1 ring-slate-200'
-        ]"
-      >
-        <div
-          :class="[
-            'p-2.5 rounded-xl shrink-0 mt-0.5',
-            alert.type === 'critical' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'
-          ]"
-        >
-          <AlertTriangle v-if="alert.type === 'critical'" class="w-5 h-5" />
-          <Bell v-else class="w-5 h-5" />
-        </div>
-
-        <div class="flex-1 min-w-0">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
-            <h3 class="font-bold text-sm text-slate-900">{{ alert.title[uiStore.language] }}</h3>
-            <span class="text-[11px] text-slate-400 font-mono">
-              {{ new Date(alert.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }}
-            </span>
-          </div>
-          <p class="text-xs text-slate-600 leading-relaxed">{{ alert.message[uiStore.language] }}</p>
-
-          <div class="mt-3 flex items-center justify-between pt-2 border-t border-slate-100">
-            <span
-              :class="[
-                'px-2 py-0.5 rounded text-[10px] font-bold uppercase',
-                alert.urgency === 'high' ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-700'
-              ]"
-            >
-              {{ alert.urgency }}
-            </span>
-
-            <button
-              v-if="!alert.read"
-              type="button"
-              class="text-xs font-semibold text-[#2c777c] hover:underline cursor-pointer"
-              @click="markAsRead(alert.id)"
-            >
-              {{ uiStore.language === 'ar' ? 'تعيين كمقروء' : 'Mark as resolved' }}
-            </button>
-            <span v-else class="text-[11px] text-slate-400 flex items-center gap-1">
-              <CheckCircle2 class="w-3.5 h-3.5 text-emerald-500" />
-              {{ uiStore.language === 'ar' ? 'تمت المراجعة' : 'Reviewed' }}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div v-else class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center py-12">
-      <div class="inline-flex p-3 rounded-2xl bg-emerald-50 text-emerald-600 mb-3">
-        <CheckCircle2 class="w-8 h-8" />
-      </div>
-      <h3 class="text-base font-bold text-slate-900">
-        {{ uiStore.language === 'ar' ? 'جميع المؤشرات التشغيلية مستقرة' : 'All Operational Systems Stable' }}
-      </h3>
-      <p class="text-xs text-slate-500 max-w-md mx-auto mt-1">
-        {{ uiStore.language === 'ar'
-          ? 'لا توجد تنبيهات حرجة في الوقت الحالي. يتم فحص مؤشرات المخزون وساعات العمل تلقائياً.'
-          : 'No critical alerts at this moment. Inventory thresholds and shift timings are being monitored continuously.'
-        }}
-      </p>
-    </div>
+      </article>
+    </section>
+    <div v-else class="p-10 bg-white rounded-2xl border border-slate-200 text-center text-sm text-slate-500">{{ ui.language === 'ar' ? 'لا توجد تنبيهات مطابقة لهذه التصفية في بيانات الفرع.' : 'No alerts match this filter in this restaurant’s demo data.' }}</div>
   </div>
 </template>

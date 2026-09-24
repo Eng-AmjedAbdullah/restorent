@@ -1,0 +1,6 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {"types":[], "target":"ES2022", "moduleResolution":"Bundler","strict":true,"skipLibCheck":true},
+  "include": ["../src/data/providers/**/*.ts","../src/data/adapters/**/*.ts","../src/contracts/**/*.ts","../src/services/**/*.ts","../src/types/domain.ts","../src/mocks/**/*.ts", "../src/types/bun-test.d.ts"],
+  "exclude":[ "../node_modules", "../dist"]
+}

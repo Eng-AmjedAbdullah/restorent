@@ -1,89 +1,74 @@
-# RestoraIntel — Unified Mock Data Architecture (STAGE B)
+# RestoraIntel — Current mock data architecture
 
-## 1. Overview & Architecture
+**Status:** Repaired local source snapshot, September 24, 2026. **Mock only:** this project has no connected production Laravel API, database, biometric hardware, live KDS or AI model.
 
-RestoraIntel adopts a strict **Contract-First, Mock-Driven Architecture**. The frontend runs entirely offline with high-fidelity Laravel REST API emulation while preparing for future HTTP provider integration.
+## Source-of-truth boundaries
 
-```
-Vue 3 Components & Views
-          |
-     Pinia Stores (Single Active Restaurant Context)
-          |
-  Typed Application Services
-          |
-   DataProvider Interface (src/data/providers/types.ts)
-          |
-   +---------------------------+---------------------------+
-   |                                                       |
-MockDataProvider                             HttpDataProvider
-(src/data/providers/mock.provider.ts)      (Future Integration Phase)
-- In-memory stateful store                  - Axios/Fetch client
-- Canonical backend DTOs                    - Bearer token header
-- Deterministic ID generation               - Live Laravel Sanctum
-- Network latency simulation                - Real PostgreSQL/MySQL
+```text
+index.html -> src/main.ts -> Vue Router -> Vue pages
+                                         | Pinia stores
+                                         | application services
+                                         v
+                          src/data/providers/index.ts
+                         (one MockDataProvider instance)
+                            |                      |
+     Confirmed Laravel-shaped DTOs       UI-only mock operations
+       (numeric wire identifiers)        (typed legacy presentation IDs)
+                            |                      |
+                   immutable canonical      isolated legacy operational
+                        fixtures             seed collections
 ```
 
-## 2. Authoritative Source of Truth
+The active application reads through service methods. `src/data/adapters/legacy-view.ts` is a **temporary compatibility boundary** converting numeric canonical DTO IDs to UI IDs (`rest-1`, `emp-101`, etc.). The active Vue components have not all been migrated to consume new presentation contracts directly.
 
-Parallel and conflicting mock datasets (`src/data/mockData.ts` vs `src/mocks/` vs `src/contracts/fixtures/`) have been unified.
-The single authoritative baseline for confirmed entities is:
+`src/data/mockData.ts` was removed with the legacy React app. `src/mocks/` retains immutable UI-only operational seed material; do not instantiate independent mutable canonical stores from those arrays. The live Vue services no longer import mutable copies of those arrays. The provider owns mutable restaurant, employee, attendance, leave, scheduling, menu, order, inventory, alert and recommendation state in a single JavaScript session; reload resets operational mutations. This is not persistent database storage.
 
-`src/contracts/fixtures/canonicalFixtures.ts`
+## Authorization and demo session
 
-### Entity Schemas & Numeric ID Model
-- **Restaurants**: Primary key `id: number` (1, 2, 3, 4, 5). Multi-currency support (`SAR`, `AED`, `USD`, `EUR`, `KWD`). Optional `slug` supported on create and update.
-- **Employees**: Primary key `id: number` (101, 102, ...). Scoped by `restaurant_id: number`. Canonical `employee_number` (`EMP-0101`). Nullable `user_id`, `position_id`, `email`, `phone`, `hire_date`.
-- **Positions**: Primary key `id: number` (1, 2, ...). Scoped by `restaurant_id: number`.
-- **Users**: Primary key `id: number` (1, 2, ...). Authentication identity decoupled from direct restaurant ownership; linked through `memberships: RestaurantMembershipDto[]`.
-- **Permissions**: Confirmed canonical permissions (`system.restaurants.manage`, `restaurant.profile.manage_self`, `restaurant.employees.manage`, `restaurant.shifts.view`, `restaurant.inventory.view`, `restaurant.reports.view`).
+- The default provider starts logged out. The selected mock persona is stored in browser `sessionStorage` for that tab only, and logout clears it. This is a *demo convenience*, not secure production auth or real Sanctum.
+- The demo password is `Demo!12345` for configured **fictional** accounts. Unknown emails, incorrect passwords and suspended accounts do not fall back to an administrator.
+- The provider validates active restaurant memberships. Access to one restaurant does not allow access to another. Employee/restaurant mutations require the verified permission code associated with the requested restaurant; a system admin override requires a genuine system-scoped role with `system.restaurants.manage`.
+- All protected methods check authorization, including mock-only operational operations. UI buttons are permission-aware but are not the security boundary.
+- The mock auth/session never reaches a backend. Do not reuse its static demo credentials, token strings, or browser session logic for production.
 
-## 3. DataProvider Contract
+## Canonical vs. UI-only contracts
 
-The `DataProvider` interface (`src/data/providers/types.ts`) defines operations for all confirmed backend endpoints:
+`src/data/providers/types.ts` contains only documented Laravel operations for login/logout/me, list/get/create/update restaurant, list/get/create/update employee. Its response envelope has `status`, `message`, `data` and `meta: []`. Error classes encode 401, 403, 404 and 422.
 
-### Confirmed Operations
-| Method | Description | Laravel REST Route |
-| :--- | :--- | :--- |
-| `login(credentials)` | Authenticate user & issue Sanctum token | `POST /api/auth/login` |
-| `logout()` | Invalidate current session token | `POST /api/auth/logout` |
-| `checkAuthMe()` | Get authenticated user and memberships | `GET /api/auth/me` |
-| `listRestaurants()` | Retrieve all accessible restaurants | `GET /api/restaurants` |
-| `getRestaurant(id)` | Retrieve branch profile | `GET /api/restaurants/{restaurant}` |
-| `createRestaurant(data)`| Register a new branch | `POST /api/restaurants` |
-| `updateRestaurant(id, data)`| Update branch metadata & settings | `PUT /api/restaurants/{restaurant}` |
-| `listEmployees(restId)` | Retrieve staff for active branch | `GET /api/restaurants/{restaurant}/employees` |
-| `getEmployee(restId, empId)`| Retrieve employee profile | `GET /api/restaurants/{restaurant}/employees/{employee}`|
-| `createEmployee(restId, data)`| Add new staff member | `POST /api/restaurants/{restaurant}/employees` |
-| `updateEmployee(restId, empId, data)`| Update staff member | `PUT /api/restaurants/{restaurant}/employees/{employee}`|
-| `deleteEmployee(restId, empId)`| Terminate/remove employee | `DELETE /api/restaurants/{restaurant}/employees/{employee}`|
-| `listPositions(restId)` | Retrieve job titles/positions | `GET /api/restaurants/{restaurant}/positions` |
+`deleteEmployee` and `listPositions` were **removed from the asserted Laravel contract**, because their routes were not confirmed in the backend API inventory available during repair. Mock-only `mockListPositions` and other typed operations are declared in `src/data/providers/operational.types.ts`. The operational interface does **not** claim corresponding Laravel endpoints exist. The backend reference used for design is not included in this frontend archive; independently verify against current Laravel code before HTTP integration.
 
-### Unconfirmed Domains Compatibility Layer
-Domains not yet finalized in the Laravel backend (`Orders`, `Inventory`, `Menu`, `Attendance`, `Scheduling`, `Reports`, `AI Insights`) are provided via isolated compatibility methods strictly scoped by `restaurantId: number`. Their data structures do not pollute canonical backend DTOs.
+All canonical fixtures under `src/contracts/fixtures/` use numeric primary/foreign keys. Demo positions are scoped to restaurants. Legacy operational seeds still use `rest-n`/`emp-n` presentation IDs; these are converted at service/data boundaries. Historical activity datasets are demonstrations; historical timestamps should not be presented as live measurements.
 
-## 4. Laravel Response Envelopes & Error Categories
+## Consistency and limitations
 
-All successful operations return the standard Laravel API resource envelope:
+- `mockGetSummary` derives pending leave, critical inventory and active-order counts from provider-owned state; pre-existing sales reports and additional non-derived KPIs are *historical seed snapshots*. Do not portray them as real-time measured values.
+- Employee creation and restaurant updates use typed mappers and central provider state; invalid foreign keys, duplicate slugs/numbers, prohibited request fields and unauthorized operations raise explicit errors.
+- Individual alerts marked as read and recommendation decisions update shared provider collections and are visible on subsequent reads; they do not resolve real incidents or deploy an AI model.
+- Restaurant-switching pages use generation checks to discard late responses. Some legacy operational snapshot employee references may still differ from the newer canonical fixtures; new functionality should progressively normalize each remaining fixture with independent integrity tests.
+- Brand assets referenced by the active Vue app are preserved; the old TSX files have been removed from this cleaned source delivery by user request. The earlier archive is the recovery source.
 
-```json
-{
-  "status": "success",
-  "message": "Employees retrieved successfully.",
-  "data": [ ... ],
-  "meta": { "total": 6, "count": 6 }
-}
+## Development verification
+
+With dependencies installed (prefer the repository's Bun lockfile):
+
+```bash
+bun install --frozen-lockfile
+bun test
+npm run typecheck
+npm run lint
+npm run build
 ```
 
-Failure categories are modeled as typed errors reproducing HTTP response status codes:
-- **`ValidationError` (422)**: Field-level validation arrays (`errors: Record<string, string[]>`).
-- **`AuthenticationError` (401)**: Missing, invalid, or expired Sanctum bearer token.
-- **`AuthorizationError` (403)**: User does not possess membership or required permission for target branch.
-- **`NotFoundError` (404)**: Eloquent `ModelNotFoundException` simulation (`No query results for model [App\Models\Employee] 999`).
+Supplemental checks available when dependencies are not installable:
 
-## 5. In-Memory Mutation & Tenant Referential Integrity
+```bash
+node scripts/verify-source.cjs
+node scripts/verify-provider.cjs
+node scripts/verify-bun-tests-node.cjs
+```
 
-`MockDataProvider` maintains stateful in-memory collections during development sessions:
-1. **Deterministic Numeric IDs**: New employees receive auto-incrementing integer IDs (`Math.max(...ids) + 1`), not random timestamps.
-2. **Strict Multi-Tenant Isolation**: New employees are strictly bound to the active `restaurantId`. Updates cannot alter `restaurant_id`.
-3. **Empty Branch State**: Restaurant 5 (`Restora Test Empty Branch - Diplomatic`) is configured with zero employees and zero orders for comprehensive UI empty-state verification.
-4. **Configurable Latency**: Default 30ms simulation of network roundtrip; configurable to 0ms for instantaneous unit test suites.
+The Node-based Bun compatibility runner exercises the **actual test files**, but **is not a substitute for running Bun**, and the source syntax checker cannot typecheck Vue templates. `scripts/tsconfig.core-check.json` supports a separate TypeScript typecheck for the provider/contracts/services subset using any available TypeScript compiler:
+
+```bash
+tsc -p scripts/tsconfig.core-check.json --pretty false
+```

@@ -32,13 +32,16 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const alerts = ref<OperationalAlert[]>([]);
   const isLoading = ref<boolean>(false);
 
-  // Live KPI Computations exactly preserving React Dashboard calculations
+  // Demo snapshot KPIs: operational counts are computed from the shared mock provider.
   const salesToday = computed(() => {
-    return summary.value?.sales_today || 42150;
+    return summary.value?.sales_today ?? 0;
   });
 
+  /** Historical snapshot, never the current date unless sample data happens to include it. */
+  const sampleSalesDate = computed(() => metrics.value.reduce((last, item) => item.date > last ? item.date : last, ''));
+
   const employeesWorking = computed(() => {
-    return employees.value.filter(e => e.status === 'on_shift').length;
+    return new Set(attendance.value.filter(a => a.status === 'active_shift').map(a => a.employee_id)).size;
   });
 
   const totalEmployees = computed(() => {
@@ -50,8 +53,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
   });
 
   const attendanceRate = computed(() => {
-    const total = attendance.value.length || 1;
-    return Math.round(((attendance.value.length - lateAttendance.value) / total) * 100);
+    const eligible = attendance.value.filter(a => ['on_time', 'late', 'early_leave', 'absent'].includes(a.status));
+    return eligible.length ? Math.round(eligible.filter(a => a.status === 'on_time').length / eligible.length * 100) : 0;
   });
 
   const lowStockCount = computed(() => {
@@ -62,7 +65,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
     return leaveRequests.value.filter(l => l.status === 'pending').length;
   });
 
+  let requestGeneration = 0;
+  const selectedRestaurantId = ref<string | null>(null);
   async function fetchDashboardData(restaurantId: string): Promise<void> {
+    const generation = ++requestGeneration;
+    selectedRestaurantId.value = restaurantId || null;
     if (!restaurantId) {
       summary.value = null;
       metrics.value = [];
@@ -102,6 +109,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
         aiInsightService.getAlerts(restaurantId)
       ]);
 
+      if (generation !== requestGeneration) return;
       summary.value = sum;
       metrics.value = repMetrics;
       kpis.value = dashboardKpis;
@@ -115,43 +123,55 @@ export const useDashboardStore = defineStore('dashboard', () => {
     } catch (error) {
       console.error('[DashboardStore] Failed to load dashboard data:', error);
     } finally {
-      isLoading.value = false;
+      if (generation === requestGeneration) isLoading.value = false;
     }
   }
 
   async function acceptInsight(id: string): Promise<void> {
     try {
-      const updated = await aiInsightService.updateInsightStatus(id, 'accepted');
+      const restaurantId = selectedRestaurantId.value;
+      if (!restaurantId) throw new Error('Choose a restaurant.');
+      const updated = await aiInsightService.updateInsightStatus(restaurantId, id, 'accepted');
+      if (selectedRestaurantId.value !== restaurantId) return;
       const idx = insights.value.findIndex(i => i.id === id);
       if (idx !== -1) {
         insights.value[idx] = updated;
       }
     } catch (err) {
       console.error('[DashboardStore] Failed to accept insight:', err);
+      throw err;
     }
   }
 
   async function rejectInsight(id: string): Promise<void> {
     try {
-      const updated = await aiInsightService.updateInsightStatus(id, 'rejected');
+      const restaurantId = selectedRestaurantId.value;
+      if (!restaurantId) throw new Error('Choose a restaurant.');
+      const updated = await aiInsightService.updateInsightStatus(restaurantId, id, 'rejected');
+      if (selectedRestaurantId.value !== restaurantId) return;
       const idx = insights.value.findIndex(i => i.id === id);
       if (idx !== -1) {
         insights.value[idx] = updated;
       }
     } catch (err) {
       console.error('[DashboardStore] Failed to reject insight:', err);
+      throw err;
     }
   }
 
   async function markAlertAsRead(id: string): Promise<void> {
     try {
-      const updated = await aiInsightService.markAlertRead(id);
+      const restaurantId = selectedRestaurantId.value;
+      if (!restaurantId) throw new Error('Choose a restaurant.');
+      const updated = await aiInsightService.markAlertRead(restaurantId, id);
+      if (selectedRestaurantId.value !== restaurantId) return;
       const idx = alerts.value.findIndex(a => a.id === id);
       if (idx !== -1) {
         alerts.value[idx] = updated;
       }
     } catch (err) {
       console.error('[DashboardStore] Failed to mark alert as read:', err);
+      throw err;
     }
   }
 
@@ -167,7 +187,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
     insights,
     alerts,
     isLoading,
+    selectedRestaurantId,
     salesToday,
+    sampleSalesDate,
     employeesWorking,
     totalEmployees,
     lateAttendance,

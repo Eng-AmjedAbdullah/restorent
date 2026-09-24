@@ -1,11 +1,11 @@
 # RestoraIntel - Frontend-Backend Contract Compatibility & Stabilization Audit
 
 **Document Reference**: `docs/FRONTEND_BACKEND_CONTRACT_AUDIT.md`  
-**Phase**: Task 01 — Baseline Stabilization & Backend Contract Compatibility Audit  
+**Phase**: Task 01 Baseline Stabilization & Task 02 Canonical Contracts, Presentation Models & Mappers  
 **Frontend Architecture**: Vue 3 (Composition API `<script setup lang="ts">`) + Vite + Pinia + Vue Router + Tailwind CSS + vue-i18n  
 **Authoritative Backend Contract**: Laravel 11+ REST API (Sanctum Token Authentication, Multi-Tenant Restaurant Isolation, RBAC Permission Matrix)  
-**Execution Date**: March 2026  
-**Audit Status**: Complete & Stabilized
+**Execution Date**: September 2026  
+**Audit Status**: Task 01 & Task 02 Complete — Ready for Task 03 Mock API Adapter  
 
 ---
 
@@ -14,26 +14,30 @@
 ### 1.1 Development Paradigm: Mock-Driven Frontend
 RestoraIntel remains strictly **mock-driven** during frontend UI/UX development. In accordance with architectural mandates:
 - **No live backend required**: The application operates deterministically in the browser without calling live Laravel endpoints or requiring a running PHP/MySQL/PostgreSQL daemon.
-- **Contract-first data modeling**: All mock responses, models, and intermediate stores are systematically aligned with the authoritative Laravel backend schema.
-- **Pluggable adapter design**: When backend integration commences, swapping the mock adapter for the HTTP client requires **zero changes** to Vue components and Pinia store actions.
+- **Contract-first data modeling**: Wire-level DTOs (`src/contracts/backend/`) strictly adhere to the confirmed Laravel REST API.
+- **Presentation model separation**: Presentation models (`src/contracts/presentation/`) and pure mappers (`src/contracts/mappers/`) isolate UI concerns, bilingual localization, and badges from wire-level backend structures.
+- **Phased Adapter Roadmap**:
+  - **Task 01 (Complete)**: Vue baseline stabilized, 8 page/service inconsistencies repaired, `vue-tsc` enabled.
+  - **Task 02 (Complete)**: Canonical DTOs, request payloads, response envelopes, presentation models, pure mappers, representative canonical fixtures, and 41 automated contract tests implemented.
+  - **Task 03 (Upcoming)**: Implementation of the complete Mock API adapter and operational mock data migration.
+  - **Future Integration Phase**: Swapping the Mock API adapter for the live HTTP API adapter (Axios + Sanctum).
 
 ```
-Vue Pages & Components
+Vue Components / Views
          │
          ▼
-    Pinia Stores (Domain & UI State)
+Pinia Stores (Consuming Presentation Models)
          │
          ▼
-   Typed Domain Services
+Typed Application Services
          │
          ▼
- Contract-Based Data Adapter Layer
-         │
+Data Provider Interface
     ┌────┴────────────────────────┐
     ▼                             ▼
-Mock Data Provider          HTTP API Client (Axios)
- [ACTIVE PHASE]             [FUTURE INTEGRATION]
- (Laravel Envelopes)         (Sanctum Bearer Token)
+Mock API Adapter             HTTP API Adapter (Axios)
+[TASK 03 DELIVERABLE]        [FUTURE INTEGRATION PHASE]
+(Canonical DTOs + Mappers)   (Sanctum Bearer Token + Wire DTOs)
 ```
 
 ---
@@ -92,10 +96,14 @@ Laravel endpoints return uniform JSON envelopes. Future HTTP client adapters mus
 
 ### 3.2 Authentication & User Identity Contract
 
-**Endpoints**:
-- `POST /api/auth/login` (Body: `{ email, password }` -> Returns `{ token, user, restaurant }`)
+**Confirmed Endpoints**:
+- `POST /api/auth/login` (Body: `{ email, password }` -> Returns `{ token, user, restaurant? }`)
 - `POST /api/auth/logout` (Header: `Authorization: Bearer {token}`)
-- `GET /api/auth/me` (Returns authenticated user profile & tenant memberships)
+- `GET /api/auth/me` (Returns authenticated user profile)
+
+#### Authoritative Contract Clarifications & Uncertainties:
+1. **Memberships & Permissions Payload**: The exact wire format for embedded permissions and tenant memberships on `POST /api/auth/login` vs `GET /api/auth/me` is not universally guaranteed across Laravel Sanctum setups. In standard Laravel Spatie / custom policy setups, permissions may be embedded as a flat list of strings (`permissions: string[]`) or queried via a secondary endpoint. Therefore, `UserDto` models `memberships`, `roles`, and `permissions` as optional loaded relations to prevent runtime breakage if the backend emits a lean user resource.
+2. **User Identity vs Tenant Membership**: In Laravel, `User` represents authentication account identity. Direct `restaurant_id` on the `User` model is an anti-pattern for multi-brand/multi-tenant platforms; multi-restaurant access is properly resolved via pivot `RestaurantMembership` records.
 
 #### Canonical User Entity vs Frontend Model
 | Field | Laravel Contract Type | Frontend Mock Type (`domain.ts`) | Compatibility Analysis & Adapter Mapping |
@@ -293,8 +301,9 @@ In the upcoming authentication/tenant task, merge tenant context following clean
 
 | Check / Tool | Execution Command | Result | Findings |
 | :--- | :--- | :--- | :--- |
+| **Contract & Mapper Unit Tests** | `npm test` (`bun test`) | **PASSED** (41/41 tests pass, Exit 0) | Comprehensive automated test coverage across DTOs, response envelopes, validation errors, request restrictions, mappers, localization catalog, and referential integrity. |
 | **Vue Template Typecheck** | `npm run typecheck` (`vue-tsc --noEmit`) | **PASSED** (Exit 0) | Full Vue SFC template and script typechecking verified across all active pages and components. |
-| **TypeScript Typecheck / Lint** | `npm run lint` (`tsc --noEmit`) | **PASSED** (Exit 0) | All TypeScript modules, domain types, stores, and services compile with zero errors. |
+| **TypeScript Typecheck / Lint** | `npm run lint` (`tsc --noEmit`) | **PASSED** (Exit 0) | All TypeScript modules, domain types, stores, contracts, and services compile with zero errors. |
 | **Vite Production Build** | `npm run build` | **PASSED** (Exit 0) | Clean production bundle generated in `/dist` with zero bundling or asset errors. |
 | **AI Studio Build System** | `compile_applet` tool | **PASSED** (Exit 0) | AI Studio dev runner compiles successfully. |
 
@@ -308,11 +317,32 @@ In the upcoming authentication/tenant task, merge tenant context following clean
 
 ---
 
-## 8. Summary of Completed Deliverables
+## 8. Summary of Completed Deliverables Across Tasks
 
-1. **Architecture Preserved**: RestoraIntel remains 100% mock-driven, ready for future contract-first adapter replacement.
+### 8.1 Task 01 Baseline Stabilization (Completed)
+1. **Architecture Preserved**: RestoraIntel remains 100% mock-driven, preparing for contract-first adapter replacement.
 2. **Quality Baseline Established**: Full Vue-aware typechecking (`vue-tsc --noEmit`), TypeScript lint (`tsc --noEmit`), and Vite production build (`vite build`) all pass with **0 errors**.
 3. **8 Page/Service Inconsistencies Repaired**: Attendance, Orders, Scheduling, Inventory, Menu, Employees, Reports, and AI Intelligence all corrected to use exact method signatures, canonical fields, and active restaurant context.
 4. **Restaurant Context Safety Enforced**: Removed all silent `'rest-1'` fallbacks; implemented loading, empty, and branch-reactive states.
-5. **Contract Compatibility Documented**: Comprehensive comparison across User, Restaurant, and Employee models with adapter mapping requirements.
-6. **Workspace Synchronization & Git Status**: Clear export/sync procedures documented for environments where container-level GitHub direct push is decoupled.
+
+### 8.2 Task 02 Canonical Contracts & Presentation Mapping (Completed)
+1. **Canonical Backend DTOs (`src/contracts/backend/`)**:
+   - `UserDto`, `RestaurantMembershipDto`, `RoleDto`, `PermissionDto`: Decoupled user account identity from restaurant membership; plain string names.
+   - `RestaurantDto`: Plain string `name`, canonical `currency_code: 'SAR'`, backend `status` enum (`active`, `inactive`, `suspended`, `archived`), and request payloads enforcing prohibited fields.
+   - `EmployeeDto`: Plain string `first_name`/`last_name`, canonical `employee_number`, tenant ownership via `restaurant_id`, nullable `user_id` and `position_id`, and separation of employment lifecycle status from operational shift attendance.
+   - `PositionDto`: Minimal confirmed schema for workforce job roles.
+   - `ApiSuccessResponse`, `ApiErrorResponse`, `ApiValidationErrorResponse`: Reusable, type-safe response envelopes faithful to Laravel standard output.
+2. **Presentation Models (`src/contracts/presentation/`)**:
+   - `RestaurantPresentationModel`, `EmployeePresentationModel`, `UserPresentationModel`: Localized strings (`{ ar, en }`), UI status badges with variants, and backward-compatible aliases.
+3. **Pure Mappers & Localization Catalog (`src/contracts/mappers/`)**:
+   - `mapRestaurantToPresentation`, `mapEmployeeToPresentation`, `mapUserToPresentation`: Deterministic pure functions.
+   - `MOCK_LOCALIZATION_CATALOG`: Keyed by stable entity IDs for mock mode; strictly falls back to canonical backend string when unlisted without fabricating artificial translations.
+4. **Representative Mock Fixtures (`src/contracts/fixtures/`)**:
+   - Multi-restaurant fixtures with valid memberships, tenant isolation, nullable relationships, and valid lifecycle statuses.
+5. **Contract Test Suite (`src/contracts/__tests__/`)**:
+   - 41 automated tests running via `npm test` (`bun test`) validating DTOs, response envelopes, validation errors, request restrictions, mappers, localization, and referential integrity.
+
+### 8.3 Task 03 Deliverables (Planned Scope)
+- Complete Mock API Adapter implementation exposing the unified Data Provider interface.
+- Migration of operational mock datasets (attendance, shifts, orders, menu, inventory) to adapter-backed mock providers.
+- Transitioning Pinia stores to consume presentation models through the Data Provider interface.
